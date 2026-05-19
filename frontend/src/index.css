@@ -1,0 +1,20 @@
+/* Bütün projenin arka planını ve yazı stilini Spotify standardına çekiyoruz */
+:root {
+  --spotify-black: #121212;
+  --spotify-dark-grey: #191919;
+  --spotify-light-grey: #242424;
+  --spotify-green: #1db954;
+  --spotify-white: #ffffff;
+  --spotify-grey: #b3b3b3;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--spotify-black);
+  color: var(--spotify-white);
+  font-family: 'Circular Std', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden; /* Sayfanın tamamının kaymasını engelleyip iç panelleri kaydıracağız */
+  height: 100vh;
+}
