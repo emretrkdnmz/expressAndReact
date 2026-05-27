@@ -105,25 +105,27 @@ const ArtistDetail = ({ setCurrentSong, setSongs, user, albums, setAlbums, favor
             {localSongs.length === 0 ? (
               <p className="no-song">Bu sanatçıya ait şarkı bulunamadı.</p>
             ) : (
-              <div className="song-grid">
-                {localSongs.map((song) => (
-                  <div key={song.id} className="song-card" onClick={() => setCurrentSong(song)}>
-                    <div className="card-actions">
-                      <button className="icon-btn" onClick={(e) => handleAddClick(e, song)} title="Albüme Ekle">
-                        <i className="fa-solid fa-plus"></i>
+              <div className="track-list-container">
+                {localSongs.map((song, index) => (
+                  <div key={song.id} className="track-list-item" onClick={() => setCurrentSong(song)}>
+                    <span className="track-list-index">{index + 1}</span>
+                    <img loading="lazy" decoding="async" src={song.coverUrl} alt={song.title} className="track-list-img" onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }} />
+                    <div className="track-list-info">
+                      <span className="track-list-title">{song.title}</span>
+                      <span className="track-list-artist">{song.artist}</span>
+                    </div>
+                    <div className="track-list-actions" onClick={(e) => e.stopPropagation()}>
+                      <button 
+                        className="icon-btn" 
+                        onClick={(e) => handleAddClick(e, song)} 
+                        title="Albüme Ekle"
+                        style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        <i className="fa-solid fa-plus" style={{ fontSize: '16px' }}></i>
                       </button>
-                    </div>
-                    <div className="card-image-wrapper">
-                      <img loading="lazy" decoding="async" src={song.coverUrl} alt={song.title} className="card-image square"  onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }} />
-                      <div className="card-play-overlay">
-                        <div className="play-bg-circle">
-                          <i className="fa-solid fa-play"></i>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="card-info">
-                      <h4>{song.title}</h4>
-                      <p>{song.artist}</p>
+                      <button className="track-list-play-btn" onClick={() => setCurrentSong(song)} title="Oynat">
+                        <i className="fa-solid fa-play"></i>
+                      </button>
                     </div>
                   </div>
                 ))}

@@ -2427,3 +2427,204 @@ input[type="range"]:hover::-webkit-slider-thumb {
 .hover-song-artist { font-size: 12px; color: #a7a7a7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hover-no-songs { color: #a7a7a7; font-size: 13px; text-align: center; margin: 10px 0; }
 
+
+/* COMPACT AND ERGONOMIC LIST LAYOUT FOR ALBUMS AND TRACKS (MOBILE FIRST) */
+.album-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.album-list-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--card-glass);
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.album-list-item:hover {
+  background: var(--card-glass-hover);
+  transform: translateX(6px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.album-list-item:active {
+  transform: scale(0.98) translateX(6px);
+}
+
+.album-list-img {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.album-list-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.album-list-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0 0 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.album-list-count {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.album-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 10;
+}
+
+.album-list-delete-btn {
+  background: transparent !important;
+  border: none !important;
+  color: #ff4d4d !important;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+  width: 36px;
+  height: 36px;
+  border-radius: 50% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.album-list-delete-btn:hover {
+  opacity: 1;
+  background: rgba(255, 77, 77, 0.1) !important;
+  transform: scale(1.1);
+}
+
+.album-list-chevron {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* TRACK LIST STYLES (INSIDE ALBUM DETAIL VIEW) */
+.track-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.track-list-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.01);
+  border: 1px solid rgba(255,255,255,0.02);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.track-list-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateX(4px);
+}
+
+.track-list-item:active {
+  transform: scale(0.99) translateX(4px);
+}
+
+.track-list-index {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-muted);
+  width: 24px;
+  text-align: center;
+}
+
+.track-list-img {
+  width: 46px;
+  height: 46px;
+  border-radius: 6px;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.track-list-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.track-list-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0 0 3px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-list-artist {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.track-list-play-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50% !important;
+  background: #1db954 !important;
+  color: #fff !important;
+  border: none !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.track-list-item:hover .track-list-play-btn {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.track-list-play-btn:hover {
+  background: #1ed760 !important;
+  transform: scale(1.1) !important;
+}
+
+/* RESPONSIVE LAYOUT ADJUSTMENTS FOR COMPACT LISTS */
+@media (max-width: 768px) {
+  .track-list-play-btn {
+    opacity: 1; /* Always show play buttons on touch devices */
+    transform: scale(1);
+    background: transparent !important;
+    color: #1db954 !important;
+    font-size: 14px;
+  }
+}
