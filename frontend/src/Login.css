@@ -33,7 +33,7 @@
 
 /* DUAL PANELS (Desktop: 55% Form area, Opak White to block background animation) */
 .auth-panel {
-  width: 55% !important;
+  width: 50% !important;
   height: 100vh !important;
   display: flex !important;
   flex-direction: column !important;
@@ -47,11 +47,11 @@
 }
 
 .left-panel {
-  padding: 40px 10% 40px 5% !important;
+  padding: 40px !important;
 }
 
 .right-panel {
-  padding: 40px 5% 40px 10% !important;
+  padding: 40px !important;
 }
 
 /* Active panel transparency state based on sliding overlay position */
@@ -276,7 +276,7 @@
   position: absolute !important;
   top: 0 !important;
   left: 0 !important;
-  width: 45% !important;
+  width: 50% !important;
   height: 100vh !important;
   /* High-Transparency Purple Glassmorphism Gradient! */
   background: linear-gradient(135deg, rgba(35, 18, 58, 0.65) 0%, rgba(13, 4, 22, 0.75) 100%) !important;
@@ -303,7 +303,7 @@
 }
 
 .view-register .auth-desktop-overlay {
-  transform: translateX(122.2%) !important;
+  transform: translateX(100%) !important;
   border-radius: 150px 0 0 150px !important;
 }
 
