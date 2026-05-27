@@ -456,9 +456,9 @@
 .floating-note {
   position: absolute !important;
   bottom: -60px !important;
-  color: rgba(29, 185, 84, 0.45) !important; /* Spotify-green tint */
-  text-shadow: 0 0 10px rgba(29, 185, 84, 0.4) !important;
-  opacity: 0 !important;
+  color: rgba(29, 185, 84, 0.75) !important; /* Spotify-green tint */
+  text-shadow: 0 0 15px rgba(29, 185, 84, 0.8), 0 0 25px rgba(29, 185, 84, 0.4) !important;
+  opacity: 0; /* REMOVED !important so keyframes can animate opacity */
   animation: floatUp 8s infinite linear !important;
   font-family: 'Outfit', Arial, sans-serif !important;
   user-select: none !important;
@@ -466,13 +466,13 @@
 
 /* Alternate colors for variety */
 .floating-note:nth-child(2n) {
-  color: rgba(139, 92, 246, 0.45) !important; /* Indigo/violet tint */
-  text-shadow: 0 0 10px rgba(139, 92, 246, 0.4) !important;
+  color: rgba(167, 139, 250, 0.8) !important; /* Lighter bright purple tint */
+  text-shadow: 0 0 15px rgba(167, 139, 250, 0.8), 0 0 25px rgba(167, 139, 250, 0.4) !important;
 }
 
 .floating-note:nth-child(3n) {
-  color: rgba(255, 255, 255, 0.45) !important; /* White tint */
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3) !important;
+  color: rgba(255, 255, 255, 0.8) !important; /* Bright White tint */
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 0 25px rgba(255, 255, 255, 0.4) !important;
 }
 
 @keyframes floatUp {
