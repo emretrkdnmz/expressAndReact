@@ -296,15 +296,15 @@
   overflow: hidden !important; /* Clip rising music notes perfectly to the curved border */
 }
 
-/* Active Sliding Positions (Massive Curved Separator Wave) */
+/* Active Sliding Positions (Perfect Sharp Corners that merge with the screen boundaries) */
 .view-login .auth-desktop-overlay {
   transform: translateX(0) !important;
-  border-radius: 0 150px 150px 0 !important;
+  border-radius: 0 !important; /* Removed curve to connect perfectly with corners */
 }
 
 .view-register .auth-desktop-overlay {
   transform: translateX(100%) !important;
-  border-radius: 150px 0 0 150px !important;
+  border-radius: 0 !important; /* Removed curve to connect perfectly with corners */
 }
 
 /* Overlay slide panels */
