@@ -54,6 +54,23 @@
   padding: 40px 5% 40px 10% !important;
 }
 
+/* Active panel transparency state based on sliding overlay position */
+.view-login .left-panel {
+  background: transparent !important;
+}
+
+.view-login .right-panel {
+  background: #ffffff !important;
+}
+
+.view-register .right-panel {
+  background: transparent !important;
+}
+
+.view-register .left-panel {
+  background: #ffffff !important;
+}
+
 /* FORM STYLES */
 .auth-form {
   width: 100% !important;
@@ -231,7 +248,7 @@
   width: 45% !important;
   height: 100vh !important;
   /* High-Transparency Purple Glassmorphism Gradient! */
-  background: linear-gradient(135deg, rgba(35, 18, 58, 0.8) 0%, rgba(13, 4, 22, 0.85) 100%) !important;
+  background: linear-gradient(135deg, rgba(35, 18, 58, 0.65) 0%, rgba(13, 4, 22, 0.75) 100%) !important;
   backdrop-filter: blur(20px) saturate(140%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
   z-index: 10 !important;
@@ -360,7 +377,7 @@
     width: 100vw !important;
     height: 100vh !important;
     flex-direction: column !important;
-    background: #ffffff !important;
+    background: transparent !important; /* Set to transparent to reveal AnimatedBackground */
     border-radius: 0 !important;
     box-shadow: none !important;
     padding: 0 !important;
@@ -395,7 +412,7 @@
     justify-content: center !important;
     text-align: center !important;
     color: #ffffff !important;
-    background: linear-gradient(135deg, rgba(35, 18, 58, 0.8) 0%, rgba(13, 4, 22, 0.85) 100%) !important;
+    background: linear-gradient(135deg, rgba(35, 18, 58, 0.65) 0%, rgba(13, 4, 22, 0.75) 100%) !important;
     backdrop-filter: blur(20px) saturate(140%) !important;
     -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
     padding: 50px 24px 45px 24px !important;
@@ -433,6 +450,7 @@
     box-sizing: border-box !important;
     flex: 1 !important;
     justify-content: center !important;
+    background: #ffffff !important; /* Keep mobile form background solid white for readability */
   }
 
   .auth-form h2 {
