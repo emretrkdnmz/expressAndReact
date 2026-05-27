@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import LoadingSpinner from './components/LoadingSpinner';
+import AnimatedBackground from './components/AnimatedBackground';
 import './Login.css';
 
 function Login({ onLoginSuccess }) {
@@ -130,6 +131,7 @@ function Login({ onLoginSuccess }) {
 
           {/* 2. REGISTRATION MOBILE CURVED TOP HEADER (Only visible on mobile in Registration View) */}
           <div className="mobile-overlay-header register-welcome">
+            <AnimatedBackground />
             {renderFloatingNotes()}
             <h2>Welcome Back!</h2>
             <p>Already have an account?</p>
@@ -199,6 +201,7 @@ function Login({ onLoginSuccess }) {
 
           {/* 2. LOGIN MOBILE CURVED TOP HEADER (Only visible on mobile in Login View) */}
           <div className="mobile-overlay-header login-welcome">
+            <AnimatedBackground />
             {renderFloatingNotes()}
             <h2>Hello, Welcome!</h2>
             <p>Don't have an account?</p>
@@ -210,6 +213,7 @@ function Login({ onLoginSuccess }) {
 
         {/* DESKTOP EXCLUSIVE SLIDING COVER OVERLAY (Completely hidden on mobile via CSS) */}
         <div className="auth-desktop-overlay">
+          <AnimatedBackground />
           {renderFloatingNotes()}
           
           {/* Welcome Panel shown when Login view is selected */}

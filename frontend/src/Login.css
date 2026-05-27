@@ -293,6 +293,7 @@
   border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
   transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.65s cubic-bezier(0.16, 1, 0.3, 1) !important;
   box-shadow: 0 0 50px rgba(0, 0, 0, 0.35) !important;
+  overflow: hidden !important; /* Clip rising music notes perfectly to the curved border */
 }
 
 /* Active Sliding Positions (Massive Curved Separator Wave) */
@@ -317,6 +318,7 @@
   align-items: center !important;
   justify-content: center !important;
   transition: opacity 0.4s ease, transform 0.5s ease !important;
+  z-index: 2 !important; /* Keep welcome slide content fully on top of animations and clickable */
 }
 
 /* Sliding Opacity Logic */
@@ -541,4 +543,31 @@
     transform: translateX(60px) rotate(360deg);
     opacity: 0;
   }
+}
+
+/* Bounding the global AnimatedBackground when rendered inside translucent purple overlays */
+.auth-desktop-overlay .animated-background,
+.mobile-overlay-header .animated-background {
+  position: absolute !important;
+  width: 100% !important;
+  height: 100% !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: 0 !important;
+}
+
+/* Ensure background note particles inside the purple overlays are highly visible with soft white neon glow */
+.auth-desktop-overlay .animated-background .music-note,
+.mobile-overlay-header .animated-background .music-note {
+  color: rgba(255, 255, 255, 0.55) !important;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.4) !important;
+  font-family: 'Outfit', Arial, sans-serif !important;
+}
+
+/* Make sure mobile overlay header texts and buttons are fully clickable and positioned on top of absolute children */
+.mobile-overlay-header > h2,
+.mobile-overlay-header > p,
+.mobile-overlay-header > button {
+  position: relative !important;
+  z-index: 2 !important;
 }
