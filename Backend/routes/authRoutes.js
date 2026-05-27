@@ -17,25 +17,26 @@ router.post('/register', async (req, res) => {
     try {
         const { username, email, password } = req.body;
 
-        // 1. Kontrol: Bu e-posta adresi veritabanında zaten var mı?
         const userExists = await User.findOne({ email });
         if (userExists) {
             return res.status(400).json({ message: 'Bu e-posta adresi zaten kullanımda!' });
         }
 
-        // 2. Adım: Eğer yoksa, yeni kullanıcıyı oluştur (Şifre şifreleme işini User modelindeki pre('save') kancası hallediyor)
         const user = await User.create({
             username,
             email,
             password
         });
 
-        // 3. Adım: Başarıyla oluşturulduysa, verileri ve token'ı fırlat
+        const UserInteraction = require('../models/UserInteraction');
+        await UserInteraction.create({ userId: user._id });
+
         if (user) {
             res.status(201).json({
                 _id: user._id,
                 username: user.username,
                 email: user.email,
+                profilePicture: user.profilePicture,
                 token: generateToken(user._id)
             });
         } else {
@@ -51,13 +52,15 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await User.findOne({ email });
+        // email'e göre kullanıcıyı bul ama şifreyi de getir (select: false olduğu için)
+        const user = await User.findOne({ email }).select('+password');
 
         if (user && (await user.matchPassword(password))) {
             res.json({
                 _id: user._id,
                 username: user.username,
                 email: user.email,
+                profilePicture: user.profilePicture,
                 token: generateToken(user._id)
             });
         } else {

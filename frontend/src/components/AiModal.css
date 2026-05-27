@@ -1,0 +1,346 @@
+/* AI Modal Backdrop Overlay */
+.ai-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  animation: aiModalFadeIn 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Glassmorphic AI Modal Content */
+.ai-modal-content {
+  background: rgba(22, 22, 28, 0.78);
+  backdrop-filter: blur(25px) saturate(190%);
+  -webkit-backdrop-filter: blur(25px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  width: 92%;
+  max-width: 540px;
+  max-height: 85vh;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  color: #ffffff;
+  position: relative;
+  animation: aiModalScaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Header */
+.ai-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ai-modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #ffffff 0%, #b28dff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ai-modal-close-btn {
+  background: transparent;
+  border: none;
+  color: #a0a0b0;
+  font-size: 20px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.ai-modal-close-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  transform: rotate(90deg);
+}
+
+/* Input Form */
+.ai-input-container {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ai-prompt-textarea {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: #ffffff;
+  padding: 14px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: none;
+  height: 80px;
+  outline: none;
+  transition: all 0.2s ease;
+  line-height: 1.5;
+}
+
+.ai-prompt-textarea:focus {
+  border-color: rgba(178, 141, 255, 0.45);
+  box-shadow: 0 0 12px rgba(178, 141, 255, 0.15);
+}
+
+.ai-submit-btn {
+  background: linear-gradient(135deg, #a275ff 0%, #7b2cff 100%);
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(123, 44, 255, 0.25);
+}
+
+.ai-submit-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(123, 44, 255, 0.4);
+}
+
+.ai-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Results Content */
+.ai-results-container {
+  padding: 16px 24px 24px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 220px;
+  max-height: 380px;
+}
+
+/* Scrollbar styling */
+.ai-results-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ai-results-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ai-results-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+}
+
+.ai-results-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.ai-results-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #7c7c8c;
+  height: 220px;
+  gap: 16px;
+  text-align: center;
+}
+
+.ai-results-empty i {
+  font-size: 48px;
+  opacity: 0.5;
+  background: linear-gradient(135deg, #b28dff 0%, #403060 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ai-results-empty p {
+  margin: 0;
+  font-size: 13.5px;
+  max-width: 340px;
+  line-height: 1.5;
+}
+
+/* Songs List */
+.ai-songs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ai-song-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  transition: all 0.2s ease;
+}
+
+.ai-song-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.ai-song-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+}
+
+.ai-song-info img {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ai-song-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ai-song-details h5 {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ai-song-details p {
+  margin: 3px 0 0;
+  font-size: 11px;
+  color: #8c8c9e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ai-play-btn {
+  background: transparent;
+  border: none;
+  color: #a0a0b0;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.ai-play-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  transform: scale(1.05);
+}
+
+/* Footer Controls */
+.ai-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.ai-create-playlist-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  padding: 10px 22px;
+  border-radius: 20px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-create-playlist-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.ai-create-playlist-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.ai-create-playlist-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ai-success-msg {
+  color: #2ecc71;
+  font-size: 13.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  animation: aiFadeIn 0.3s ease;
+}
+
+/* Keyframes */
+@keyframes aiModalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes aiModalScaleUp {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes aiFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.sparkle-spin {
+  animation: sparkleRotation 1.5s linear infinite;
+}
+
+@keyframes sparkleRotation {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

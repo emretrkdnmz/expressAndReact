@@ -1,0 +1,221 @@
+.artist-detail-page-modern {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  padding-bottom: 100px;
+  position: relative;
+}
+
+.artist-header-modern {
+  position: relative;
+  height: 340px;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: flex-end;
+}
+
+.artist-header-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.4) 60%, rgba(0, 0, 0, 0.8) 100%);
+  z-index: 1;
+}
+
+.artist-header-content {
+  position: relative;
+  z-index: 2;
+  padding: 30px;
+  width: 100%;
+}
+
+.artist-back-btn {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.artist-back-btn:hover {
+  background: rgba(0, 0, 0, 0.6);
+  transform: scale(1.05);
+}
+
+.verified-badge {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.artist-large-name {
+  font-size: 72px;
+  font-weight: 800;
+  margin: 0 0 15px 0;
+  line-height: 1;
+  letter-spacing: -2px;
+  text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.artist-monthly-listeners {
+  font-size: 14px;
+  color: #fff;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.artist-body-modern {
+  padding: 30px;
+  background: transparent;
+}
+
+.artist-controls {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.artist-play-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: rgba(29, 185, 84, 0.15); /* Transparent green */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(29, 185, 84, 0.4);
+  color: #1db954;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 0 15px rgba(29, 185, 84, 0.2);
+}
+
+.artist-play-btn:hover {
+  transform: scale(1.05);
+  background-color: rgba(29, 185, 84, 0.3);
+  box-shadow: 0 0 25px rgba(29, 185, 84, 0.4);
+  border-color: rgba(29, 185, 84, 0.8);
+}
+
+.artist-follow-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.artist-follow-btn:hover {
+  border-color: #fff;
+  transform: scale(1.05);
+}
+
+.artist-follow-btn.following {
+  border-color: transparent;
+  background: rgba(255,255,255,0.1);
+}
+
+.artist-more-btn {
+  background: transparent;
+  border: none;
+  color: #a0a0b0;
+  font-size: 24px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.artist-more-btn:hover {
+  color: #fff;
+}
+
+.popular-heading {
+  font-size: 24px;
+  margin: 0 0 20px 0;
+}
+
+.artist-songs-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.artist-song-row {
+  display: grid;
+  grid-template-columns: 40px 50px 1fr 1fr 100px;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: #a0a0b0;
+}
+
+.artist-song-row:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.song-index {
+  font-size: 16px;
+}
+
+.song-row-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.song-row-title {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.song-row-plays {
+  font-size: 14px;
+}
+
+.song-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 15px;
+}
+
+.add-btn-modern {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.artist-song-row:hover .add-btn-modern {
+  opacity: 1;
+}
+
+.song-row-duration {
+  font-size: 14px;
+}

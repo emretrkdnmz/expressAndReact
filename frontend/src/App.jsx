@@ -1,289 +1,688 @@
-import { useState, useEffect, useRef } from 'react'; // React'ın durum yönetimi (state), yan etkiler (effect) ve element referans (ref) hook'larını içeri alıyoruz.
-import axios from 'axios'; // Backend'e güvenli HTTP istekleri (GET, POST vb.) atabilmek için Axios kütüphanesini dahil ediyoruz.
-import Login from './Login'; // Kullanıcı giriş yapmadıysa göstereceğimiz Login/Register ekranı bileşenini çağırıyoruz.
-import './App.css'; // Spotify klonuna özel stil ve premium cam (Glassmorphism) tasarımlarını barındıran CSS dosyamız.
-import './index.css'; // Tüm projenin genel, sıfırlama (reset) ve kök font stillerini taşıyan CSS dosyamız.
+import React, { useState, useEffect, useRef } from 'react';
+import { Routes, Route, NavLink, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import ArtistHoverCard from './components/ArtistHoverCard';
+import Login from './Login';
+import Songs from './pages/Songs';
+import Artists from './pages/Artists';
+import Search from './pages/Search';
+import ArtistDetail from './pages/ArtistDetail';
+import Albums from './pages/Albums';
+import Profile from './pages/Profile';
+import AccountSettings from './pages/profile-views/AccountSettings';
+import PremiumPlan from './pages/profile-views/PremiumPlan';
+import ListeningStats from './pages/profile-views/ListeningStats';
+import RecentPlays from './pages/profile-views/RecentPlays';
+import Updates from './pages/profile-views/Updates';
+import PrivacySettings from './pages/profile-views/PrivacySettings';
+import TopNavBar from './components/TopNavBar';
+import RightSidebar from './components/RightSidebar';
+import AnimatedBackground from './components/AnimatedBackground';
+import ErrorBoundary from './components/ErrorBoundary';
+import './App.css';
+import './index.css';
 
-function App() { // Uygulamanın ana yönetim merkezi olan App fonksiyonel bileşenini başlatıyoruz.
+function App() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isProfilePage = location.pathname.startsWith('/profile');
 
-  // --- STATE VE REFERANS (HOOK) TANIMLAMALARI ---
-
-  // Tarayıcı hafızasını (localStorage) kontrol ederek daha önce giriş yapmış bir kullanıcı verisi varsa onu çekip 'user' durumuna atıyoruz, yoksa null başlıyor.
   const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('userData'); // Tarayıcı hafızasından 'userData' anahtarlı metni oku.
-    return savedUser ? JSON.parse(savedUser) : null; // Metin varsa JSON nesnesine çevirip yükle, yoksa null dön.
+    const savedUser = localStorage.getItem('userData');
+    return savedUser ? JSON.parse(savedUser) : null;
   });
   
-  const [songs, setSongs] = useState([]); // Veritabanından (MongoDB) çekeceğimiz şarkı listesini dizilim olarak saklayacak durum yapısı.
-  const [currentSong, setCurrentSong] = useState(null); // O an çalınan veya tıklanan aktif şarkının tüm verilerini (ad, artist, url vb.) tutan durum.
+  const [songs, setSongs] = useState([]); // Player için tüm şarkıları tutar
+  const [currentSong, setCurrentSong] = useState(() => {
+    const savedSong = localStorage.getItem('lastPlayedSong');
+    return savedSong ? JSON.parse(savedSong) : null;
+  });
   
-  // --- MÜZİK MOTORU İÇİN ÖZEL HOOK'LAR ---
-  const audioRef = useRef(null); // JSX içindeki gizli HTML5 <audio> etiketine JavaScript üzerinden doğrudan müdahale edebilmek (play/pause) için kurulan köprü.
-  const [isPlaying, setIsPlaying] = useState(false); // Şarkının o an çalıp çalmadığını (True/False) takip eden ve play/pause ikonunu değiştiren durum.
-  const [currentTime, setCurrentTime] = useState(0); // Çalan şarkının anlık olarak kaçıncı saniyede olduğunu saklayan durum (Sürgüyü yürütür).
-  const [volume, setVolume] = useState(0.7); // Ses seviyesini 0 ile 1 arasında tutan durum (Varsayılan olarak %70 ses gücüyle başlar).
-  const [duration, setDuration] = useState(0); // Çalan aktif şarkının toplamda kaç saniye sürdüğünü (dosya uzunluğunu) saklayan durum.
+  // Kütüphane Verileri (Favoriler ve Albümler)
+  const [favoriteArtists, setFavoriteArtists] = useState([]);
+  const [albums, setAlbums] = useState([]);
+  const [hoveredArtist, setHoveredArtist] = useState(null);
   
-  // Bankacılık uygulamalarındaki gibi hareketsiz kalındığında çalışacak olan zamanlayıcıyı (timer) hafızada kaybetmeden tutmak için kullanılan referans.
+  const audioRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(() => {
+    const savedTime = localStorage.getItem('lastPlayedSongTime');
+    return savedTime ? parseFloat(savedTime) : 0;
+  });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragValue, setDragValue] = useState(0);
+  const [isShuffle, setIsShuffle] = useState(false);
+  const [isRepeat, setIsRepeat] = useState(false);
+  const [device, setDevice] = useState('AirPods');
+  const [volume, setVolume] = useState(0.7);
+  const [duration, setDuration] = useState(0);
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isPlayerMaximized, setIsPlayerMaximized] = useState(false);
+  const isFirstLoad = useRef(!!localStorage.getItem('lastPlayedSong'));
+  
   const timeoutRef = useRef(null);
 
-
-  // --- YARDIMCI VE İŞLEVSEL FONKSİYONLAR ---
-
-  // 1. BACKEND'DEN ŞARKILARI GÜVENLİ ÇEKME FONKSİYONU
-  const fetchSongs = async () => { // Async yapısı sayesinde veritabanından cevap gelene kadar tarayıcıyı kilitlemeden arkada istek atar.
-    try {
-      const token = localStorage.getItem('userToken'); // Tarayıcı hafızasındaki dijital ehliyeti (JWT Token) al.
-      if (!token) return; // Eğer ehliyet yoksa boş dön, backend'i boşuna yorma.
-
-      // Axios ile backend'deki şarkı kapısını çalıyoruz ve kafasına (Headers) koruma muhafızının açacağı JWT Token ehliyetini koyuyoruz.
-      const response = await axios.get('http://localhost:5000/api/songs', {
-        headers: {
-          Authorization: `Bearer ${token}` // Backend protect middleware'inin beklediği 'Bearer token_kodu' kalıbı.
-        }
-      });
-      
-      setSongs(response.data); // Backend'den başarıyla dönen şarkı dizisini (Array) 'songs' durumumuza aktararak ekrana basılmaya hazır hale getiriyoruz.
-    } catch (error) {
-      console.error("Şarkılar yüklenirken bir hata oluştu:", error); // Olası bir bağlantı veya yetki hatasını konsola kırmızı yazı olarak bas.
-    }
-  };
-
-  // 2. MANUEL ÇIKIŞ YAPMA FONKSİYONU (Oturumu Kapat Butonu İçin)
   const handleLogout = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current); // Eğer arkada dönen bir otomatik çıkış sayacı varsa onu iptal et/temizle.
-    localStorage.clear(); // Tarayıcı hafızasında saklanan Token ve Kullanıcı verilerini tamamen kazı/temizle.
-    setUser(null); // Kullanıcı durumunu boşalt (Bu işlem tetiklendiği an React otomatik olarak Login ekranını açar).
-    setSongs([]); // Hafızadaki şarkıları temizle.
-    setCurrentSong(null); // O an çalan şarkı varsa player'ı kapatıp temizle.
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('userData');
+    setUser(null);
+    setSongs([]);
+    setCurrentSong(null);
+    setFavoriteArtists([]);
+    setAlbums([]);
+    window.location.href = '/';
   };
 
-  // 3. BELİRLİ SÜRE HAREKETSİZ KALINCA OTOMATİK ÇIKIŞ MANTIĞI
   const resetInactivityTimer = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current); // Her hareket algılandığında halihazırda geri sayan eski sayacı sıfırla.
-
-    // Yeni bir zamanlayıcı kur: 2 dakika (120.000 milisaniye) boyunca hiçbir hareket olmazsa içerideki kod bloğu tetiklenecek.
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
-      alert("Hareketsiz kaldığınız için oturumunuz güvenli bir şekilde kapatıldı."); // Kullanıcıya bilgilendirme uyarısı fırlat.
-      handleLogout(); // Güvenli çıkış fonksiyonunu çalıştırarak kullanıcıyı kapının dışına at.
-    }, 120000); // 120000 milisaniye = 2 dakika.
+      alert("Hareketsiz kaldığınız için oturumunuz güvenli bir şekilde kapatıldı.");
+      handleLogout();
+    }, 120000);
   };
 
-  // --- REACT ETKİLEŞİM VE GÜVENLİK DUVARLARI ---
-
-  // Sayfa ilk açıldığında veya 'user' durumu her değiştiğinde tetiklenen, tarayıcı event'lerini dinleyen ana kontrol hook'u.
   useEffect(() => {
-    if (user) { // Eğer kullanıcı giriş yapmışsa (user nesnesi doluysa):
-      fetchSongs(); // Güvenli şarkı çekme fonksiyonunu tetikle.
-
-      // Kullanıcının ekrandaki tüm canlı etkileşimlerini yakalayacağımız tetikleyici olaylar listesi.
+    if (user) {
       const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
-      
-      resetInactivityTimer(); // İlk girişte temiz bir geri sayım sayacı başlat.
-
-      // Kullanıcı fareyi oynattığında, tıkladığında veya klavyeye bastığında 'resetInactivityTimer' fonksiyonunu çağırarak süreyi tazele.
+      resetInactivityTimer();
       events.forEach(event => window.addEventListener(event, resetInactivityTimer));
       
-      // Temizlik (Cleanup) Aşaması: Bileşen kapandığında veya çıkış yapıldığında tarayıcının arkasında çöp dinleyici kalmasın diye hafızayı boşaltır.
       return () => {
-        events.forEach(event => window.removeEventListener(event, resetInactivityTimer)); // Dinleyicileri tarayıcıdan sök.
-        if (timeoutRef.current) clearTimeout(timeoutRef.current); // Sayacı imha et.
+        events.forEach(event => window.removeEventListener(event, resetInactivityTimer));
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
       };
     }
-  }, [user]); // Bu efekt sadece 'user' state'i değiştiğinde (Giriş/Çıkış anlarında) baştan aşağı bir kez çalışır.
+  }, [user]);
 
+  // Kullanıcı giriş yaptıktan sonra kütüphanesini (favoriler ve albümler) çekiyoruz
+  useEffect(() => {
+    const fetchLibrary = async () => {
+      try {
+        if (!user || !user.token) return;
+        const res = await axios.get('http://localhost:5000/api/library', {
+          headers: { Authorization: `Bearer ${user.token}` }
+        });
+        setFavoriteArtists(res.data.favoriteArtists || []);
+        setAlbums(res.data.albums || []);
+      } catch (error) {
+        console.error('Kütüphane bilgileri alınamadı', error);
+      }
+    };
+    fetchLibrary();
+  }, [user]);
 
-  // 🚨 KORUMA BARIYERİ: Eğer 'user' boşsa (null), alttaki hiçbir Spotify kodunu okuma; doğrudan ekranı kesip Login bileşenini fırlat.
+  // Oynatma Durumu Efekti
+  useEffect(() => {
+    if (audioRef.current && currentSong) {
+      if (isPlaying) {
+        audioRef.current.play().catch(e => console.error("Oynatma hatası:", e));
+      } else {
+        audioRef.current.pause();
+      }
+    }
+  }, [isPlaying, currentSong]);
+
+  // Yeni şarkı seçildiğinde veya değiştiğinde localStorage'a kaydet ve oynatma mantığı
+  useEffect(() => {
+    if (currentSong) {
+      localStorage.setItem('lastPlayedSong', JSON.stringify(currentSong));
+      
+      // Eğer ilk açılış (restore) değilse şarkıyı oynat ve sağ barı aç
+      if (!isFirstLoad.current) {
+        setIsPlaying(true);
+        setCurrentTime(0);
+        if (audioRef.current) {
+          audioRef.current.currentTime = 0;
+        }
+        setIsRightSidebarOpen(true);
+      } else {
+        // İlk açılış (restore) aşaması bitti
+        isFirstLoad.current = false;
+      }
+
+      // Geçmişe ekle
+      const saved = JSON.parse(localStorage.getItem('recentPlays') || '[]');
+      const newPlay = {
+         id: currentSong.id || currentSong._id,
+         title: currentSong.title,
+         artist: currentSong.artist,
+         coverUrl: currentSong.coverUrl,
+         duration_ms: currentSong.duration_ms || 210000,
+         playedAt: new Date().toISOString()
+      };
+      
+      const updated = [newPlay, ...saved.filter(s => s.id !== newPlay.id)].slice(0, 50);
+      localStorage.setItem('recentPlays', JSON.stringify(updated));
+    }
+  }, [currentSong]);
+
   if (!user) {
-    // Login başarılı olunca içindeki veriyi alıp 'setUser' fonksiyonumuza paslayan bir Props köprüsü kuruyoruz.
-    return <Login onLoginSuccess={(userData) => setUser(userData)} />;
+    return (
+      <>
+        <AnimatedBackground />
+        <Login onLoginSuccess={(userData) => setUser(userData)} />
+      </>
+    );
   }
 
-
-  // --- CANLI MÜZİK OYNATICI KONTROL FONKSİYONLARI ---
-
-  // A) Oynat / Duraklat Fonksiyonu (Player Barındaki Yuvarlak Buton İçin)
   const togglePlay = () => {
-    if (!audioRef.current) return; // Eğer ses motoru (audio etiketi) henüz yüklenmediyse işlemi durdur.
-    if (isPlaying) { // Şarkı o an çalıyorsa:
-      audioRef.current.pause(); // Ses motorunu duraklat.
-      setIsPlaying(false); // Durum ikonunu 'Oynat (Play)' moduna çek.
-    } else { // Şarkı durdurulmuşsa:
-      audioRef.current.play(); // Ses motorunu kaldığı yerden yürüt.
-      setIsPlaying(true); // Durum ikonunu 'Duraklat (Pause)' moduna çek.
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play();
+      setIsPlaying(true);
     }
   };
 
-  // B) Saniye Formatlayıcı (Örn: Gelen ham 75 saniyeyi ekranda göreceğimiz "1:15" şıklığına çevirir)
   const formatTime = (time) => {
-    if (isNaN(time)) return "0:00"; // Eğer süre henüz hesaplanamadıysa (Not a Number) ekrana "0:00" bas.
-    const minutes = Math.floor(time / 60); // Toplam saniyeyi 60'a bölüp tam kısmını dakika olarak al.
-    const seconds = Math.floor(time % 60); // 60'tan kalan saniyeyi hesapla.
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`; // Saniye tek haneliyse başına '0' koyarak yan yana birleştir (Örn: 3:05).
+    if (isNaN(time)) return "0:00";
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
-  // C) Kullanıcı Zaman Çizgisini (İlerleme Çubuğunu) Faresiyle Kaydırdığında Tetiklenen Fonksiyon
+  const handleProgressStart = () => {
+    setIsDragging(true);
+    setDragValue(currentTime);
+  };
+
   const handleProgressChange = (e) => {
-    if (!audioRef.current) return; // Ses motoru hazır değilse işlem yapma.
-    const newTime = e.target.value; // Kullanıcının çubuğu sürüklediği noktadaki yeni saniye değerini yakala.
-    audioRef.current.currentTime = newTime; // Ses motorunu doğrudan o saniyeye zıplat/sar.
-    setCurrentTime(newTime); // Çubuğun ekrandaki konumunu (state) yeni saniyeye eşitle.
+    setDragValue(parseFloat(e.target.value));
   };
 
-  // --- ARAYÜZÜN HTML/JSX RENDER ALANI ---
-  return (
-    <div className="spotify-layout"> {/* Tüm Spotify ekranını sarmalayan ana dış iskelet kutusu */}
-      <div className="main-view"> {/* Sol Menü ve Orta İçerik Alanını yan yana tutan gövde grubu */}
-        
-        {/* SOL MENÜ (SIDEBAR) */}
-        <aside className="sidebar">
-          <div className="logo">🎵 Spotify Clone</div> {/* Klon uygulamanın ana başlık logosu */}
-          {/* Giriş yapan kullanıcının adını MongoDB'den gelen veriyle dinamik basan selamlama alanı */}
-          <div className="user-welcome">Merhaba, <span>{user.username}</span></div> 
-          <nav>
-            <ul>
-              {/* O an bulunulan aktif sayfayı belirtmek için 'active' sınıfına sahip Ana Sayfa satırı */}
-              <li className="active"><i className="fa-solid fa-house"></i> Ana Sayfa</li>
-              <li><i className="fa-solid fa-magnifying-glass"></i> Ara</li> {/* İleride arama yapacağımız buton */}
-              <li><i className="fa-solid fa-book"></i> Kitaplığın</li> {/* İleride çalma listelerini koyacağımız buton */}
-            </ul>
-          </nav>
-          
-          {/* Tıklandığında tüm oturumu sıfırlayan Font Awesome ikonlu şık kapatma butonu */}
-          <button className="logout-sidebar-btn" onClick={handleLogout}>
-            <i className="fa-solid fa-right-from-bracket"></i> Oturumu Kapat
-          </button>
-        </aside>
+  const handleProgressEnd = (e) => {
+    const newTime = parseFloat(e.target.value);
+    if (audioRef.current) {
+      audioRef.current.currentTime = newTime;
+    }
+    setCurrentTime(newTime);
+    setIsDragging(false);
+  };
 
-        {/* ORTA ALAN (MÜZİK KÜTÜPHANESİ) */}
-        <main className="content">
-          <h2>Tünaydın</h2> {/* Karşılama başlığı */}
+  const handleNextSong = () => {
+    if (!songs || songs.length === 0) return;
+    const currentIndex = songs.findIndex(
+      (s) => (s.id || s._id) === (currentSong?.id || currentSong?._id)
+    );
+    let nextIndex;
+    if (isShuffle) {
+      nextIndex = Math.floor(Math.random() * songs.length);
+    } else {
+      nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % songs.length;
+    }
+    setCurrentSong(songs[nextIndex]);
+    setIsPlaying(true);
+  };
+
+  const handlePrevSong = () => {
+    if (!songs || songs.length === 0) return;
+    const currentIndex = songs.findIndex(
+      (s) => (s.id || s._id) === (currentSong?.id || currentSong?._id)
+    );
+    const prevIndex = currentIndex === -1 ? songs.length - 1 : (currentIndex - 1 + songs.length) % songs.length;
+    setCurrentSong(songs[prevIndex]);
+    setIsPlaying(true);
+  };
+
+  const toggleCurrentArtistFavorite = async () => {
+    if (!currentSong || !user || !user.token) return;
+    try {
+      const artistRes = await axios.get(`http://localhost:5000/api/deezer/artists/${encodeURIComponent(currentSong.artist)}`);
+      if (artistRes.data && artistRes.data.artist) {
+        const artistInfo = artistRes.data.artist;
+        const favRes = await axios.post(
+          'http://localhost:5000/api/library/favorites',
+          { artist: artistInfo },
+          { headers: { Authorization: `Bearer ${user.token}` } }
+        );
+        setFavoriteArtists(favRes.data);
+      }
+    } catch (error) {
+      console.error('Favori sanatçı güncellenemedi', error);
+    }
+  };
+
+  const toggleDevice = () => {
+    const devices = ["AirPods", "Telefon Hoparlörü", "Bluetooth Hoparlör"];
+    const currentIndex = devices.indexOf(device);
+    setDevice(devices[(currentIndex + 1) % devices.length]);
+  };
+
+  const handleShareSong = () => {
+    if (!currentSong) return;
+    const songLink = `${window.location.origin}/artist/${encodeURIComponent(currentSong.artist)}`;
+    navigator.clipboard.writeText(songLink).then(() => {
+      alert(`"${currentSong.title}" paylaşım bağlantısı panoya kopyalandı!`);
+    }).catch(err => {
+      console.error("Paylaşım bağlantısı kopyalanamadı:", err);
+    });
+  };
+
+  return (
+    <ErrorBoundary>
+      <AnimatedBackground />
+        <div className="spotify-layout-modern">
+          <TopNavBar 
+            user={user} 
+            setCurrentSong={setCurrentSong} 
+            albums={albums} 
+            setAlbums={setAlbums} 
+            onToggleMobileMenu={() => setIsMobileMenuOpen(true)} 
+          />
           
-          <div className="song-grid"> {/* Şarkı kartlarını yan yana ve duyarlı (responsive) dizen grid kutusu */}
-            {songs.map((song) => ( // Backend'den gelen tüm şarkıları döngüye (map) alıp her biri için bir kart üretiyoruz:
-              // Karta tıklandığında 'currentSong' durumuna o şarkının tüm nesne verisini kilitliyoruz.
-              <div key={song._id} className="song-card" onClick={() => setCurrentSong(song)}>
-                <div className="card-image-wrapper"> {/* Resim ve üzerindeki hover efektlerini tutan sarmalayıcı */}
-                  <img src={song.coverUrl} alt={song.title} className="card-image" /> {/* Şarkının albüm kapağı resmi */}
-                  
-                  {/* CSS ile tasarladığımız, fareyle üzerine gelince (Hover) tam ortada beliren o yeşil yuvarlak Spotify Play butonu */}
-                  <div className="card-play-overlay">
-                    <div className="play-bg-circle">
-                      <i className="fa-solid fa-play"></i> {/* Beyaz yuvarlağın içindeki siyah üçgen oynat ikonu */}
-                    </div>
+          {/* Mobil Yan Menü (Hamburger Çekmecesi) */}
+          <div className={`mobile-sidebar-drawer ${isMobileMenuOpen ? 'open' : ''}`}>
+            <div className="mobile-sidebar-header">
+              <div className="mobile-logo">
+                <i className="fa-brands fa-spotify"></i>
+                <span>Menü</span>
+              </div>
+              <button className="close-mobile-menu-btn" onClick={() => setIsMobileMenuOpen(false)} title="Kapat">
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <nav className="mobile-sidebar-nav" onClick={() => setIsMobileMenuOpen(false)}>
+              <ul>
+                <li>
+                  <NavLink to="/songs" className={({ isActive }) => (isActive ? "active mobile-nav-item" : "mobile-nav-item")}>
+                    <i className="fa-solid fa-house"></i>
+                    <span>Ana Sayfa</span>
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/artists" className={({ isActive }) => (isActive ? "active mobile-nav-item" : "mobile-nav-item")}>
+                    <i className="fa-solid fa-users"></i>
+                    <span>Sanatçılar</span>
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/albums" className={({ isActive }) => (isActive ? "active mobile-nav-item" : "mobile-nav-item")}>
+                    <i className="fa-solid fa-book"></i>
+                    <span>Listelerim</span>
+                  </NavLink>
+                </li>
+              </ul>
+              
+              <div className="mobile-library-section">
+                <div className="mobile-library-header">
+                  <i className="fa-solid fa-heart"></i>
+                  <span>Favoriler</span>
+                </div>
+                <ul className="mobile-artist-list">
+                  {favoriteArtists.map(artist => (
+                    <li key={artist.id} className="mobile-artist-item">
+                      <NavLink to={`/artist/${encodeURIComponent(artist.name)}`} className="mobile-artist-link">
+                        <img 
+                          src={artist.imageUrl} 
+                          className="mobile-artist-img" 
+                          alt={artist.name} 
+                          onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }}
+                        />
+                        <span className="mobile-artist-name">{artist.name}</span>
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </nav>
+          </div>
+          {isMobileMenuOpen && <div className="mobile-sidebar-overlay" onClick={() => setIsMobileMenuOpen(false)}></div>}
+        
+        <div className="layout-body">
+          <div className="layout-left-wrapper">
+            <div className="main-view-modern">
+              
+              {/* SOL MENÜ (NARROW SIDEBAR) */}
+              <aside className="sidebar-narrow">
+            <div className="logo-icon">
+              <i className="fa-brands fa-spotify"></i>
+            </div>
+            
+            <nav>
+              <ul>
+                <li>
+                  <NavLink to="/songs" className={({ isActive }) => (isActive ? "active expandable-nav-item" : "expandable-nav-item")}>
+                    <i className="fa-solid fa-house"></i>
+                    <span className="nav-text">Ana Sayfa</span>
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/artists" className={({ isActive }) => (isActive ? "active expandable-nav-item" : "expandable-nav-item")}>
+                    <i className="fa-solid fa-users"></i>
+                    <span className="nav-text">Sanatçılar</span>
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/albums" className={({ isActive }) => (isActive ? "active expandable-nav-item" : "expandable-nav-item")}>
+                    <i className="fa-solid fa-book"></i>
+                    <span className="nav-text">Listelerim</span>
+                  </NavLink>
+                </li>
+              </ul>
+              
+              <div className="library-section">
+                <div className="library-header expandable-nav-item">
+                  <i className="fa-solid fa-heart"></i>
+                  <span className="nav-text">Favoriler</span>
+                </div>
+                <ul className="sidebar-artist-list">
+                  {favoriteArtists.map(artist => (
+                    <li key={artist.id} className="sidebar-artist-item">
+                      <NavLink to={`/artist/${encodeURIComponent(artist.name)}`} className="sidebar-artist-link">
+                        <img 
+                          loading="lazy" 
+                          decoding="async" 
+                          src={artist.imageUrl} 
+                          className="nav-artist-img" 
+                          alt={artist.name} 
+                          onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }}
+                          onMouseEnter={(e) => {
+                             const rect = e.target.getBoundingClientRect();
+                             setHoveredArtist({ artist, top: rect.top + rect.height / 2, left: rect.right + 10 });
+                          }}
+                          onMouseLeave={() => setHoveredArtist(null)}
+                        />
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </nav>
+          </aside>
+
+          {/* ORTA ALAN (MÜZİK KÜTÜPHANESİ - DİNAMİK) */}
+          <main className="content-rounded">
+            <Routes>
+              <Route path="/" element={<Navigate to="/songs" replace />} />
+              <Route 
+                path="/songs" 
+                element={<Songs setCurrentSong={setCurrentSong} setSongs={setSongs} user={user} albums={albums} setAlbums={setAlbums} favoriteArtists={favoriteArtists} />} 
+              />
+              <Route 
+                path="/artists" 
+                element={<Artists user={user} favoriteArtists={favoriteArtists} setFavoriteArtists={setFavoriteArtists} />} 
+              />
+              <Route 
+                path="/search" 
+                element={<Search setCurrentSong={setCurrentSong} setSongs={setSongs} user={user} favoriteArtists={favoriteArtists} setFavoriteArtists={setFavoriteArtists} albums={albums} setAlbums={setAlbums} />} 
+              />
+              <Route 
+                path="/artist/:name" 
+                element={<ArtistDetail setCurrentSong={setCurrentSong} setSongs={setSongs} user={user} albums={albums} setAlbums={setAlbums} favoriteArtists={favoriteArtists} setFavoriteArtists={setFavoriteArtists} />} 
+              />
+              <Route 
+                path="/albums" 
+                element={<Albums setCurrentSong={setCurrentSong} albums={albums} setAlbums={setAlbums} user={user} />} 
+              />
+              <Route 
+                path="/profile" 
+                element={<Profile user={user} setUser={setUser} handleLogout={handleLogout} />} 
+              />
+              <Route path="/profile/account" element={<AccountSettings user={user} setUser={setUser} />} />
+              <Route path="/profile/premium" element={<PremiumPlan user={user} />} />
+              <Route path="/profile/stats" element={<ListeningStats />} />
+              <Route path="/profile/recent" element={<RecentPlays setCurrentSong={setCurrentSong} />} />
+              <Route path="/profile/updates" element={<Updates />} />
+              <Route path="/profile/settings" element={<PrivacySettings handleLogout={handleLogout} />} />
+              <Route path="*" element={<Songs setCurrentSong={setCurrentSong} setSongs={setSongs} user={user} albums={albums} setAlbums={setAlbums} />} />
+            </Routes>
+          </main>
+            </div>
+
+        {/* ALT MÜZİK ÇALMA ÇUBUĞU (MUSIC PLAYER BAR) */}
+        {/* ALT MÜZİK ÇALMA ÇUBUĞU (MUSIC PLAYER BAR) */}
+        {currentSong && !isProfilePage && (
+          <footer className={`music-player-bar ${isPlayerMaximized ? 'maximized' : 'minimized'}`}>
+            
+            {/* FULLSCREEN MAXIMIZED MOBİL PLAYER */}
+            <div className="maximized-player-overlay" style={{ backgroundImage: `url(${currentSong.coverUrl})` }}>
+              <div className="maximized-player-blur-bg"></div>
+              
+              <div className="maximized-player-header">
+                <button className="maximized-close-btn" onClick={(e) => { e.stopPropagation(); setIsPlayerMaximized(false); }}>
+                  <i className="fa-solid fa-chevron-down"></i>
+                </button>
+                <span className="maximized-header-title">Yakındaki Aramalar</span>
+                <button className="maximized-more-btn">
+                  <i className="fa-solid fa-ellipsis"></i>
+                </button>
+              </div>
+
+              <div className="maximized-player-body">
+                <div className="maximized-cover-wrapper">
+                  <img src={currentSong.coverUrl} alt={currentSong.title} className="maximized-cover-img" onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }} />
+                </div>
+
+                <div className="maximized-song-info-row">
+                  <div className="maximized-song-details" onClick={() => { setIsPlayerMaximized(false); navigate(`/artist/${encodeURIComponent(currentSong.artist)}`); }}>
+                    <h2>{currentSong.title}</h2>
+                    <p>{currentSong.artist}</p>
+                  </div>
+                  <button className="maximized-add-btn" onClick={toggleCurrentArtistFavorite} title="Sanatçıyı Takip Et">
+                    <i className={`${favoriteArtists.some(a => a.name.toLowerCase() === currentSong?.artist?.toLowerCase()) ? 'fa-solid' : 'fa-regular'} fa-heart`} style={favoriteArtists.some(a => a.name.toLowerCase() === currentSong?.artist?.toLowerCase()) ? { color: '#1db954' } : {}}></i>
+                  </button>
+                </div>
+
+                <div className="maximized-progress-block">
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max={duration || 100} 
+                    value={isDragging ? dragValue : currentTime} 
+                    onChange={handleProgressChange} 
+                    onMouseDown={handleProgressStart}
+                    onTouchStart={handleProgressStart}
+                    onMouseUp={handleProgressEnd}
+                    onTouchEnd={handleProgressEnd}
+                    className="maximized-progress-slider"
+                    disabled={!currentSong.audioUrl}
+                    style={{
+                      background: `linear-gradient(to right, #1db954 ${
+                        duration ? ((isDragging ? dragValue : currentTime) / duration) * 100 : 0
+                      }%, rgba(255,255,255,0.2) ${duration ? ((isDragging ? dragValue : currentTime) / duration) * 100 : 0}%)`
+                    }}
+                  />
+                  <div className="maximized-timestamps">
+                    <span>{formatTime(isDragging ? dragValue : currentTime)}</span>
+                    <span>-{formatTime(Math.max(0, duration - (isDragging ? dragValue : currentTime)))}</span>
                   </div>
                 </div>
-                <div className="card-info"> {/* Şarkı metin detaylarının alanı */}
-                  <h4>{song.title}</h4> {/* Şarkının ismi (Örn: Lost in the City Lights) */}
-                  <p>{song.artist}</p> {/* Şarkıyı söyleyen sanatçı adı */}
+
+                <div className="maximized-controls-row">
+                  <button className={`maximized-control-btn shuffle ${isShuffle ? 'active' : ''}`} onClick={() => setIsShuffle(!isShuffle)} title="Karıştır">
+                    <i className="fa-solid fa-shuffle"></i>
+                  </button>
+                  <button className="maximized-control-btn prev" onClick={handlePrevSong} title="Önceki Şarkı">
+                    <i className="fa-solid fa-backward-step"></i>
+                  </button>
+                  <button className="maximized-play-btn" onClick={togglePlay} disabled={!currentSong.audioUrl}>
+                    <i className={`fa-solid ${isPlaying ? 'fa-pause' : 'fa-play'}`}></i>
+                  </button>
+                  <button className="maximized-control-btn next" onClick={handleNextSong} title="Sonraki Şarkı">
+                    <i className="fa-solid fa-forward-step"></i>
+                  </button>
+                  <button className={`maximized-control-btn repeat ${isRepeat ? 'active' : ''}`} onClick={() => setIsRepeat(!isRepeat)} title="Tekrarla">
+                    <i className="fa-solid fa-repeat"></i>
+                  </button>
+                </div>
+
+                <div className="maximized-footer-row">
+                  <span className="maximized-device-info" onClick={toggleDevice} style={{ cursor: 'pointer' }} title="Cihaz Değiştir">
+                    <i className="fa-solid fa-headphones"></i> {device}
+                  </span>
+                  <div className="maximized-footer-actions">
+                    <button className="maximized-footer-btn" onClick={handleShareSong} title="Şarkıyı Paylaş">
+                      <i className="fa-solid fa-share-nodes"></i>
+                    </button>
+                    <button className="maximized-footer-btn" onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)} title="Listeleri Göster">
+                      <i className="fa-solid fa-bars"></i>
+                    </button>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </main>
-      </div>
-
-      {/* ALT MÜZİK ÇALMA ÇUBUĞU (MUSIC PLAYER BAR) */}
-      <footer className="music-player-bar">
-        {/* TERNARY OPERATOR: Eğer seçili bir şarkı varsa (currentSong doluysa) çalara ait tüm kontrolleri aç, yoksa 'şarkı seçilmedi' yaz */}
-        {currentSong ? (
-          <div className="player-container"> {/* Alt barın içindeki 3'lü hizalamayı (Sol-Orta-Sağ) kuran ana konteyner */}
-            
-            {/* 1. Bölüm (Sol Taraf): O an çalan şarkının resmi ve künyesi */}
-            <div className="player-song-info">
-              <img src={currentSong.coverUrl} alt={currentSong.title} className="player-cover" /> {/* Küçük albüm kapağı */}
-              <div className="song-details">
-                <h5>{currentSong.title}</h5> {/* Çalan şarkının adı */}
-                <p>{currentSong.artist}</p> {/* Çalan şarkının sanatçısı */}
-              </div>
             </div>
 
-            {/* 2. Bölüm (Orta Taraf): Canlı Navigasyon ve Oynatma Butonları ile Zaman Sürgüsü */}
-            <div className="player-center-controls">
-              <div className="control-buttons">
-                {/* Geri sarma butonu (Şu an tasarım amaçlı duruyor) */}
-                <button className="nav-btn"><i className="fa-solid fa-backward-step"></i></button>
-                
-                {/* Tıklandığında togglePlay fonksiyonunu tetikleyen ve çalıp çalmama durumuna göre dinamik olarak ikon değiştiren oynat/durdur butonu */}
-                <button className="play-circle-btn" onClick={togglePlay}>
-                  <i className={`fa-solid ${isPlaying ? 'fa-pause' : 'fa-play'}`}></i> {/* Çalıyorsa pause ikonu, duruyorsa play ikonu basılır */}
-                </button>
-                
-                {/* İleri sarma butonu (Şu an tasarım amaçlı duruyor) */}
-                <button className="nav-btn"><i className="fa-solid fa-forward-step"></i></button>
-              </div>
+            {/* STANDART MİNİMİZE PLAYER CONTAINER */}
+            <div className="player-container" onClick={() => {
+              if (window.innerWidth <= 768) {
+                setIsPlayerMaximized(true);
+              }
+            }}>
               
-              {/* Zaman Çizgisinin Akış Alanı */}
-              <div className="progress-container">
-                {/* Şarkının o an çaldığı anlık saniyeyi (Formatlanmış: 0:45 gibi) sol tarafa basar */}
-                <span className="time-stamp">{formatTime(currentTime)}</span>
+              <div 
+                className="player-song-info" 
+                onClick={(e) => {
+                  if (window.innerWidth > 768) {
+                    e.stopPropagation();
+                    navigate(`/artist/${encodeURIComponent(currentSong.artist)}`);
+                  }
+                }}
+                style={{ cursor: 'pointer' }}
+                title={`${currentSong.artist} sayfasına git`}
+              >
+                <img loading="lazy" decoding="async" src={currentSong.coverUrl} alt={currentSong.title} className="player-cover"  onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }} />
+                <div className="song-details">
+                  <h5>{currentSong.title}</h5>
+                  <p>{currentSong.artist}</p>
+                </div>
+              </div>
+
+              <div className="player-center-controls" onClick={(e) => e.stopPropagation()}>
+                <div className="control-buttons">
+                  <button className="nav-btn" onClick={handlePrevSong} title="Önceki Şarkı"><i className="fa-solid fa-backward-step"></i></button>
+                  <button className="play-circle-btn" onClick={togglePlay} disabled={!currentSong.audioUrl} style={!currentSong.audioUrl ? {opacity: 0.5, cursor: 'not-allowed'} : {}}>
+                    <i className={`fa-solid ${isPlaying ? 'fa-pause' : 'fa-play'}`}></i>
+                  </button>
+                  <button className="nav-btn" onClick={handleNextSong} title="Sonraki Şarkı"><i className="fa-solid fa-forward-step"></i></button>
+                </div>
                 
+                <div className="progress-container">
+                  <span className="time-stamp">{formatTime(isDragging ? dragValue : currentTime)}</span>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max={duration || 100} 
+                    value={isDragging ? dragValue : currentTime} 
+                    onChange={handleProgressChange} 
+                    onMouseDown={handleProgressStart}
+                    onTouchStart={handleProgressStart}
+                    onMouseUp={handleProgressEnd}
+                    onTouchEnd={handleProgressEnd}
+                    className="custom-progress-bar"
+                    disabled={!currentSong.audioUrl}
+                    style={{
+                      background: `linear-gradient(to right, #1db954 ${
+                        duration ? ((isDragging ? dragValue : currentTime) / duration) * 100 : 0
+                      }%, #4f4f4f ${duration ? ((isDragging ? dragValue : currentTime) / duration) * 100 : 0}%)`
+                    }}
+                  />
+                  <span className="time-stamp">{formatTime(duration)}</span>
+                </div>
+                {!currentSong.audioUrl && (
+                  <p style={{fontSize: '11px', color: '#e91429', margin: '5px 0 0 0', position: 'absolute', bottom: '5px'}}>Önizleme bulunmuyor</p>
+                )}
+              </div>
+
+              <div className="player-right-controls" onClick={(e) => e.stopPropagation()}>
+                <span className="volume-icon"><i className="fa-solid fa-volume-high"></i></span>
                 <input 
-                  type="range" // Sürgülü çizgi tipi
-                  min="0" // Çizginin başlangıç noktası (0. saniye)
-                  max={duration || 100} // Çizginin biteceği maksimum nokta (Şarkının toplam süresi, şarkı gelmediyse hata vermesin diye varsayılan 100)
-                  value={currentTime} // Çubuğun ekrandaki anlık canlı konumu
-                  onChange={handleProgressChange} // Kullanıcı çubuğu elleyip kaydırdığında tetiklenecek fonksiyon
-                  className="custom-progress-bar" 
-                  
-                  /* Geçen saniyenin toplam süreye oranını yüzde (%) olarak hesaplayıp, çubuğun sol tarafını parlayan Spotify yeşiline boyayan inline CSS sihrimiz */
+                  type="range" 
+                  min="0" 
+                  max="1" 
+                  step="0.01" 
+                  value={volume} 
+                  onChange={(e) => {
+                    const newVolume = parseFloat(e.target.value);
+                    setVolume(newVolume);
+                    if (audioRef.current) audioRef.current.volume = newVolume;
+                  }}
+                  className="volume-slider" 
                   style={{
-                    background: `linear-gradient(to right, #1db954 ${
-                      duration ? (currentTime / duration) * 100 : 0
-                    }%, #4f4f4f ${duration ? (currentTime / duration) * 100 : 0}%)`
+                    background: `linear-gradient(to right, #1db954 ${volume * 100}%, #4f4f4f ${volume * 100}%)`
                   }}
                 />
-                
-                {/* Şarkının gerçek dosya uzunluğunu (Toplam süresini, Örn: 3:12) sağ tarafa basan alan */}
-                <span className="time-stamp">{formatTime(duration)}</span>
               </div>
-            </div>
-
-            {/* 3. Bölüm (Sağ Taraf): Canlı Ses Ayar Sürgüsü */}
-            <div className="player-right-controls">
-              <span className="volume-icon"><i className="fa-solid fa-volume-high"></i></span> {/* Vektörel ses hoparlör ikonu */}
-
-              <input 
-                type="range" 
-                min="0" // Sıfır ses (Mute)
-                max="1" // Tam ses gücü (%100)
-                step="0.01" // Çubuğun hassasiyeti (Yumuşak kısıp açabilmek için yüzer basamak ayarı)
-                value={volume} // Ses çubuğunun state'teki anlık konumu
-                onChange={(e) => { // Çubuk her kaydırıldığında:
-                  const newVolume = parseFloat(e.target.value); // Yeni ses ondalık değerini al (Örn: 0.55).
-                  setVolume(newVolume); // 'volume' state'imizi güncelle (Çubuğu renklendirir).
-                  if (audioRef.current) audioRef.current.volume = newVolume; // Gizli HTML ses motorunun sesini gerçek zamanlı değiştir.
-                }}
-                className="volume-slider" 
-
-                /* Tıpkı müzik barı gibi, sesin düzey yüzdesine göre ses çubuğunun sol tarafını yeşile boyayan inline CSS hilesi */
-                style={{
-                  background: `linear-gradient(to right, #1db954 ${volume * 100}%, #4f4f4f ${volume * 100}%)`
-                }}
+              
+              <audio 
+                ref={audioRef} 
+                src={currentSong.audioUrl || ''} 
+                volume={volume} 
+                onPlay={() => setIsPlaying(true)} 
+                onPause={() => setIsPlaying(false)} 
+                onLoadedMetadata={(e) => {
+                  setDuration(e.target.duration);
+                  
+                  // Eğer ilk açılışta kaydedilmiş bir süre varsa oraya seek et
+                  const savedTime = localStorage.getItem('lastPlayedSongTime');
+                  if (savedTime && isFirstLoad.current) {
+                    const parsedTime = parseFloat(savedTime);
+                    e.target.currentTime = parsedTime;
+                    setCurrentTime(parsedTime);
+                    isFirstLoad.current = false;
+                  }
+                  
+                  if (isPlaying && currentSong.audioUrl) {
+                    e.target.play().catch(err => {
+                      console.log('Otomatik oynatma engellendi:', err);
+                      setIsPlaying(false);
+                    });
+                  }
+                }} 
+                onTimeUpdate={(e) => {
+                  const time = e.target.currentTime;
+                  if (!isDragging) {
+                    setCurrentTime(time);
+                    localStorage.setItem('lastPlayedSongTime', time.toString());
+                  }
+                }} 
+                onEnded={() => {
+                  if (isRepeat) {
+                    if (audioRef.current) {
+                      audioRef.current.currentTime = 0;
+                      audioRef.current.play().catch(e => console.error(e));
+                    }
+                    setCurrentTime(0);
+                    setIsPlaying(true);
+                  } else {
+                    handleNextSong();
+                  }
+                }} 
+                style={{ display: 'none' }} 
               />
             </div>
-            
-            {/* GİZLİ SES MOTORU (Kullanıcının görmediği, müziği internetten indirip hoparlöre basan asıl HTML5 Audio etiketi) */}
-            <audio 
-              ref={audioRef} // Yukarıda tanımladığımız referans köprüsünü bu etikete bağlıyoruz.
-              src={currentSong.audioUrl} // Çalınacak şarkının internet üzerindeki gerçek MP3 adresi (MongoDB'den gelir).
-              autoPlay // Karta tıklandığı an şarkıyı yükleyip otomatik olarak çalmaya başla.
-              volume={volume} // Motorun ses seviyesini bizim yukarıdaki ses state'imize eşitliyoruz.
-              onPlay={() => setIsPlaying(true)} // Şarkı tarayıcı tarafından çalınmaya başladığı an state'i True yap (İkon pause'a döner).
-              onPause={() => setIsPlaying(false)} // Şarkı duraklatıldığı an state'i False yap (İkon play'e döner).
-              onLoadedMetadata={(e) => setDuration(e.target.duration)} // Şarkı dosyası tarayıcıya indiği an toplam saniyesini okur ve 'duration' state'ine yazar.
-              onTimeUpdate={(e) => setCurrentTime(e.target.currentTime)} // Şarkı hoparlörden çaldığı her salise tetiklenerek anlık saniyeyi 'currentTime' state'ine üfler (Çubuğu yürütür).
-              onEnded={() => { setIsPlaying(false); setCurrentTime(0); }} // Şarkı tamamen bitip sona ulaştığında çalmayı durdur ve zamanı sıfıra çek.
-              style={{ display: 'none' }} // Bu etiketi ekranda gizliyoruz çünkü kontrol butonlarını yukarıda kendimiz premium olarak tasarladık.
-            />
-          </div>
-        ) : (
-          // Eğer henüz hiçbir şarkı kartına tıklanmadıysa alt barda belirecek olan boş durum (fallback) yazısı.
-          <p className="no-song">Henüz bir şarkı seçilmedi. Başlatmak için bir karta tıkla!</p>
+          </footer>
         )}
-      </footer>
-    </div>
+
+          </div>
+          
+          {isRightSidebarOpen && (
+            <RightSidebar 
+              currentSong={currentSong} 
+              onClose={() => setIsRightSidebarOpen(false)} 
+              user={user}
+              favoriteArtists={favoriteArtists}
+              setFavoriteArtists={setFavoriteArtists}
+              setCurrentSong={setCurrentSong}
+            />
+          )}
+        </div>
+
+        {hoveredArtist && (
+          <ArtistHoverCard 
+            artist={hoveredArtist.artist} 
+            top={hoveredArtist.top} 
+            left={hoveredArtist.left} 
+            setCurrentSong={setCurrentSong} 
+          />
+        )}
+
+      </div>
+    </ErrorBoundary>
   );
 }
 
-export default App; // Yazdığımız bu devasa ana bileşeni tarayıcının render edebilmesi için dış dünyaya açıyoruz (export).
+export default App;

@@ -1,0 +1,387 @@
+/* Modal Backdrop Overlay with blur */
+.connections-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  animation: modalFadeIn 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Glassmorphic Modal Content */
+.connections-modal-content {
+  background: rgba(22, 22, 28, 0.75);
+  backdrop-filter: blur(25px) saturate(190%);
+  -webkit-backdrop-filter: blur(25px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  width: 92%;
+  max-width: 520px;
+  max-height: 82vh;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  color: #ffffff;
+  position: relative;
+  animation: modalScaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Header */
+.connections-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.connections-modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #ffffff 0%, #b0b0c0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.connections-modal-close-btn {
+  background: transparent;
+  border: none;
+  color: #a0a0b0;
+  font-size: 20px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.connections-modal-close-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  transform: rotate(90deg);
+}
+
+/* Tabs */
+.connections-tabs {
+  display: flex;
+  padding: 16px 24px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 12px;
+}
+
+.connections-tab-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #8c8c9e;
+  padding: 8px 16px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  transition: all 0.25s ease;
+}
+
+.connections-tab-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.connections-tab-btn.active {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+}
+
+.connections-tab-count {
+  margin-left: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #c0c0d0;
+  transition: all 0.2s ease;
+}
+
+.connections-tab-btn.active .connections-tab-count {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+/* List Body */
+.connections-list-container {
+  padding: 16px 24px 24px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 250px;
+  max-height: 480px;
+}
+
+/* Custom Scrollbar for list container */
+.connections-list-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.connections-list-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.connections-list-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.connections-list-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Empty State */
+.connections-list-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #727282;
+  height: 220px;
+  gap: 16px;
+  text-align: center;
+}
+
+.connections-list-empty i {
+  font-size: 44px;
+  opacity: 0.4;
+  background: linear-gradient(135deg, #a0a0b0 0%, #404050 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.connections-list-empty p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* User Item styling */
+.connections-user-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  margin-bottom: 4px;
+}
+
+.connections-user-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.connections-user-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  flex: 1;
+  text-decoration: none;
+  color: inherit;
+}
+
+.connections-user-info img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.connections-user-info:hover img {
+  transform: scale(1.05);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.connections-user-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.connections-user-details h5 {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #ffffff;
+  transition: color 0.2s ease;
+}
+
+.connections-user-info:hover .connections-user-details h5 {
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
+}
+
+.connections-user-details p {
+  margin: 3px 0 0;
+  font-size: 11.5px;
+  color: #8c8c9e;
+}
+
+/* Unfollow Button */
+.connections-unfollow-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e2e2e8;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.connections-unfollow-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.08);
+}
+
+.connections-unfollow-btn:active {
+  transform: translateY(0);
+}
+
+/* Glassmorphism Unfollow Confirmation Overlay */
+.unfollow-confirm-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 10, 15, 0.6);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10100;
+  animation: confirmFadeIn 0.2s ease-out;
+}
+
+.unfollow-confirm-card {
+  background: rgba(30, 30, 42, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 26px;
+  width: 82%;
+  max-width: 360px;
+  text-align: center;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+  animation: confirmScaleUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.unfollow-confirm-card h4 {
+  margin: 0 0 10px;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.unfollow-confirm-card p {
+  margin: 0 0 22px;
+  color: #a0a0b2;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.unfollow-confirm-card p strong {
+  color: #ffffff;
+}
+
+.unfollow-confirm-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.unfollow-cancel-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  padding: 8px 22px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.unfollow-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.unfollow-cancel-btn:active {
+  transform: translateY(0);
+}
+
+.unfollow-yes-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  padding: 8px 22px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.unfollow-yes-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.12);
+}
+
+.unfollow-yes-btn:active {
+  transform: translateY(0);
+}
+
+/* Keyframes */
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalScaleUp {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes confirmFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes confirmScaleUp {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
