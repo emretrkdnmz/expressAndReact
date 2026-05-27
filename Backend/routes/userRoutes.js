@@ -127,6 +127,58 @@ router.put('/profile', protect, upload.single('profilePicture'), async (req, res
   }
 });
 
+// POST /api/user/premium - Premium Durumuna Yükselt (Ödeme Sonrası)
+router.post('/premium', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
+    }
+
+    user.premiumStatus = 'Premium';
+    const updatedUser = await user.save();
+
+    const interaction = await UserInteraction.findOne({ userId: req.user._id });
+    const followersCount = interaction ? interaction.followersList.length : 0;
+    const followingCount = interaction ? (interaction.followedUsers.length + interaction.followedArtists.length) : 0;
+
+    res.json({
+      ...updatedUser.toObject(),
+      followers: followersCount,
+      following: followingCount,
+      followedUsers: interaction ? interaction.followedUsers : []
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// POST /api/user/premium/cancel - Premium Durumunu İptal Et (Free Yap)
+router.post('/premium/cancel', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
+    }
+
+    user.premiumStatus = 'Free';
+    const updatedUser = await user.save();
+
+    const interaction = await UserInteraction.findOne({ userId: req.user._id });
+    const followersCount = interaction ? interaction.followersList.length : 0;
+    const followingCount = interaction ? (interaction.followedUsers.length + interaction.followedArtists.length) : 0;
+
+    res.json({
+      ...updatedUser.toObject(),
+      followers: followersCount,
+      following: followingCount,
+      followedUsers: interaction ? interaction.followedUsers : []
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // GET /api/user/search-history
 router.get('/search-history', protect, async (req, res) => {
   try {
@@ -209,6 +261,19 @@ router.post('/follow/:id', protect, async (req, res) => {
     await targetInteraction.save();
 
     res.json({ followedUsers: currentInteraction.followedUsers });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// GET /api/user/announcements - Genel Duyuruları Getir (Kullanıcılar İçin)
+router.get('/announcements', protect, async (req, res) => {
+  try {
+    const Announcement = require('../models/Announcement');
+    const announcements = await Announcement.find()
+      .populate('publishedBy', 'username')
+      .sort({ createdAt: -1 });
+    res.json(announcements);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

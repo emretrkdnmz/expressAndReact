@@ -112,6 +112,27 @@ function Login({ onLoginSuccess }) {
 
   return (
     <div className="auth-container">
+      {/* Mobile Global Background for Particles/Notes */}
+      <div className="mobile-global-background">
+        <AnimatedBackground />
+        {renderFloatingNotes()}
+
+        {/* Siri/Apple-style Organic Fluid White Waves */}
+        <div className="mobile-siri-wrapper">
+          <div className="siri-wave-container">
+            {/* Soft glowing white background backing blur */}
+            <div className="siri-glow-bg"></div>
+            
+            {/* Morphing fluid wave outlines */}
+            <div className="siri-wave wave-1"></div>
+            <div className="siri-wave wave-2"></div>
+            <div className="siri-wave wave-3"></div>
+            <div className="siri-wave wave-4"></div>
+          </div>
+          <div className="mobile-siri-text">AURA SYSTEM ACTIVE</div>
+        </div>
+      </div>
+
       <div className={`auth-card ${isLoginView ? 'view-login' : 'view-register'}`}>
         
         {/* LEFT PANEL: LOGIN FORM (Desktop) / REGISTRATION PANEL (Mobile) */}
@@ -119,6 +140,7 @@ function Login({ onLoginSuccess }) {
           
           {/* 1. LOGIN FORM (Always rendered on the left form side) */}
           <form onSubmit={handleLoginSubmit} className="auth-form login-form">
+            <div className="bottom-sheet-handle"></div>
             <h2>Login</h2>
             
             {loginError && <div className="auth-error-toast">{loginError}</div>}
@@ -163,16 +185,21 @@ function Login({ onLoginSuccess }) {
               <button type="button" className="auth-social-btn" onClick={() => alert("GitHub ile Giriş Simüle Edildi")}><i className="fa-brands fa-github"></i></button>
               <button type="button" className="auth-social-btn" onClick={() => alert("LinkedIn ile Giriş Simüle Edildi")}><i className="fa-brands fa-linkedin-in"></i></button>
             </div>
+
+            {/* Mobile-only inline switch link */}
+            <div className="mobile-auth-switch">
+              Don't have an account? <span onClick={() => handleSwitchView(false)}>Register</span>
+            </div>
           </form>
 
-          {/* 2. REGISTRATION MOBILE CURVED TOP HEADER (Only visible on mobile in Registration View) */}
-          <div className="mobile-overlay-header register-welcome">
+          {/* 2. LOGIN MOBILE CURVED TOP HEADER (Only visible on mobile in Login View) */}
+          <div className="mobile-overlay-header login-welcome">
             <AnimatedBackground />
             {renderFloatingNotes()}
-            <h2>Welcome Back!</h2>
-            <p>Already have an account?</p>
-            <button type="button" className="auth-btn-outline" onClick={() => handleSwitchView(true)}>
-              Login
+            <h2>Hello, Welcome!</h2>
+            <p>Don't have an account?</p>
+            <button type="button" className="auth-btn-outline" onClick={() => handleSwitchView(false)}>
+              Register
             </button>
           </div>
         </div>
@@ -182,6 +209,7 @@ function Login({ onLoginSuccess }) {
           
           {/* 1. REGISTRATION FORM (Always rendered on the right form side) */}
           <form onSubmit={handleRegisterSubmit} className="auth-form register-form">
+            <div className="bottom-sheet-handle"></div>
             <h2>Registration</h2>
             
             {registerError && <div className="auth-error-toast">{registerError}</div>}
@@ -233,16 +261,21 @@ function Login({ onLoginSuccess }) {
               <button type="button" className="auth-social-btn" onClick={() => alert("GitHub ile Kayıt Olma Simüle Edildi")}><i className="fa-brands fa-github"></i></button>
               <button type="button" className="auth-social-btn" onClick={() => alert("LinkedIn ile Kayıt Olma Simüle Edildi")}><i className="fa-brands fa-linkedin-in"></i></button>
             </div>
+
+            {/* Mobile-only inline switch link */}
+            <div className="mobile-auth-switch">
+              Already have an account? <span onClick={() => handleSwitchView(true)}>Login</span>
+            </div>
           </form>
 
-          {/* 2. LOGIN MOBILE CURVED TOP HEADER (Only visible on mobile in Login View) */}
-          <div className="mobile-overlay-header login-welcome">
+          {/* 2. REGISTRATION MOBILE CURVED TOP HEADER (Only visible on mobile in Registration View) */}
+          <div className="mobile-overlay-header register-welcome">
             <AnimatedBackground />
             {renderFloatingNotes()}
-            <h2>Hello, Welcome!</h2>
-            <p>Don't have an account?</p>
-            <button type="button" className="auth-btn-outline" onClick={() => handleSwitchView(false)}>
-              Register
+            <h2>Welcome Back!</h2>
+            <p>Already have an account?</p>
+            <button type="button" className="auth-btn-outline" onClick={() => handleSwitchView(true)}>
+              Login
             </button>
           </div>
         </div>

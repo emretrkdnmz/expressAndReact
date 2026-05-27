@@ -4,6 +4,15 @@ import axios from 'axios';
 const AlbumModal = ({ isOpen, onClose, song, user, albums, setAlbums }) => {
   const [newAlbumName, setNewAlbumName] = useState('');
 
+  const cleanAlbumName = (albumName) => {
+    if (!albumName) return '';
+    const prefix = user?.username ? `${user.username} - ` : '';
+    if (prefix && albumName.toLowerCase().startsWith(prefix.toLowerCase())) {
+      return albumName.substring(prefix.length);
+    }
+    return albumName;
+  };
+
   if (!isOpen || !song) return null;
 
   const handleCreateAlbum = async (e) => {
@@ -70,7 +79,7 @@ const AlbumModal = ({ isOpen, onClose, song, user, albums, setAlbums }) => {
               <div key={album._id || album.id} className="album-list-item" onClick={() => handleAddToAlbum(album._id || album.id)}>
                 <img loading="lazy" decoding="async" src={album.coverUrl} alt="Album Cover"  onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }} />
                 <div style={{display: 'flex', flexDirection: 'column'}}>
-                  <span style={{fontWeight: 'bold', fontSize: '15px'}}>{album.name}</span>
+                  <span style={{fontWeight: 'bold', fontSize: '15px'}}>{cleanAlbumName(album.name)}</span>
                   <span style={{fontSize: '12px', color: '#a7a7a7'}}>{album.songs ? album.songs.length : 0} şarkı</span>
                 </div>
               </div>

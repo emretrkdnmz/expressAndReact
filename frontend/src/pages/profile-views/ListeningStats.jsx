@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const ListeningStats = () => {
+const ListeningStats = ({ user }) => {
   const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalMinutes: 0,
@@ -116,7 +116,9 @@ const ListeningStats = () => {
   };
 
   useEffect(() => {
-    const savedPlays = localStorage.getItem('recentPlays');
+    if (!user) return;
+    const userId = user._id || user.id;
+    const savedPlays = localStorage.getItem(`recentPlays_${userId}`);
     if (!savedPlays) {
       setStats({ totalMinutes: 0, genresList: [], hasHistory: false });
       return;
@@ -178,7 +180,7 @@ const ListeningStats = () => {
       genresList,
       hasHistory: recentTracks.length > 0
     });
-  }, []);
+  }, [user]);
 
   return (
     <div className="profile-detail-page">

@@ -4,6 +4,15 @@ import axios from 'axios';
 const Albums = ({ setCurrentSong, albums, setAlbums, user }) => {
   const [selectedAlbum, setSelectedAlbum] = useState(null);
 
+  const cleanAlbumName = (albumName) => {
+    if (!albumName) return '';
+    const prefix = user?.username ? `${user.username} - ` : '';
+    if (prefix && albumName.toLowerCase().startsWith(prefix.toLowerCase())) {
+      return albumName.substring(prefix.length);
+    }
+    return albumName;
+  };
+
   const handleDeleteAlbum = async (e, albumId) => {
     e.stopPropagation();
     if (!window.confirm("Bu albümü silmek istediğinize emin misiniz?")) return;
@@ -31,17 +40,29 @@ const Albums = ({ setCurrentSong, albums, setAlbums, user }) => {
     <div className="albums-page">
       {selectedAlbum ? (
         <div className="album-detail-view">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '30px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(10px, 3vw, 20px)', marginBottom: 'clamp(15px, 4vw, 30px)' }}>
             <button 
               onClick={() => setSelectedAlbum(null)} 
-              style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
             >
               <i className="fa-solid fa-arrow-left"></i>
             </button>
-            <h2 style={{ margin: 0, flex: 1, fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>{selectedAlbum.name}</h2>
+            <h2 style={{ 
+              margin: 0, 
+              flex: 1, 
+              fontFamily: "'Outfit', sans-serif", 
+              fontWeight: 800,
+              fontSize: 'clamp(18px, 4.5vw, 28px)',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              minWidth: 0
+            }}>
+              {cleanAlbumName(selectedAlbum.name)}
+            </h2>
             <button 
               onClick={(e) => handleDeleteAlbum(e, selectedAlbum._id || selectedAlbum.id)}
-              style={{ background: '#ff4d4d', border: 'none', color: '#fff', padding: '10px 20px', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}
+              style={{ background: '#ff4d4d', border: 'none', color: '#fff', padding: '10px 20px', borderRadius: '20px', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', flexShrink: 0 }}
             >
               <i className="fa-solid fa-trash"></i> Albümü Sil
             </button>
@@ -78,7 +99,7 @@ const Albums = ({ setCurrentSong, albums, setAlbums, user }) => {
                 <div key={album._id || album.id} className="album-list-item" onClick={() => setSelectedAlbum(album)}>
                   <img loading="lazy" decoding="async" src={album.coverUrl || "/default-cover.svg"} alt={album.name} className="album-list-img" onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }} />
                   <div className="album-list-info">
-                    <span className="album-list-name">{album.name}</span>
+                    <span className="album-list-name">{cleanAlbumName(album.name)}</span>
                     <span className="album-list-count">{album.songs ? album.songs.length : 0} şarkı</span>
                   </div>
                   <div className="album-list-actions" onClick={(e) => e.stopPropagation()}>

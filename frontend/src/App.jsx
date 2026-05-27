@@ -3,12 +3,15 @@ import { Routes, Route, NavLink, Navigate, useLocation, useNavigate } from 'reac
 import axios from 'axios';
 import ArtistHoverCard from './components/ArtistHoverCard';
 import Login from './Login';
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import Songs from './pages/Songs';
 import Artists from './pages/Artists';
 import Search from './pages/Search';
 import ArtistDetail from './pages/ArtistDetail';
 import Albums from './pages/Albums';
 import Profile from './pages/Profile';
+import Browse from './pages/Browse';
 import AccountSettings from './pages/profile-views/AccountSettings';
 import PremiumPlan from './pages/profile-views/PremiumPlan';
 import ListeningStats from './pages/profile-views/ListeningStats';
@@ -16,6 +19,7 @@ import RecentPlays from './pages/profile-views/RecentPlays';
 import Updates from './pages/profile-views/Updates';
 import PrivacySettings from './pages/profile-views/PrivacySettings';
 import TopNavBar from './components/TopNavBar';
+import SongDetail from './pages/SongDetail';
 import RightSidebar from './components/RightSidebar';
 import AnimatedBackground from './components/AnimatedBackground';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -26,17 +30,25 @@ function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const isProfilePage = location.pathname.startsWith('/profile');
+  const isAdminPage = location.pathname.startsWith('/admin');
+  const isDetailPage = location.pathname.startsWith('/songs/detail');
 
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('userData');
-    return savedUser ? JSON.parse(savedUser) : null;
+    if (!savedUser) return null;
+    try {
+      const parsed = JSON.parse(savedUser);
+      if (!parsed.token) {
+        parsed.token = localStorage.getItem('userToken');
+      }
+      return parsed;
+    } catch (e) {
+      return null;
+    }
   });
   
   const [songs, setSongs] = useState([]); // Player için tüm şarkıları tutar
-  const [currentSong, setCurrentSong] = useState(() => {
-    const savedSong = localStorage.getItem('lastPlayedSong');
-    return savedSong ? JSON.parse(savedSong) : null;
-  });
+  const [currentSong, setCurrentSong] = useState(null);
   
   // Kütüphane Verileri (Favoriler ve Albümler)
   const [favoriteArtists, setFavoriteArtists] = useState([]);
@@ -45,10 +57,7 @@ function App() {
   
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(() => {
-    const savedTime = localStorage.getItem('lastPlayedSongTime');
-    return savedTime ? parseFloat(savedTime) : 0;
-  });
+  const [currentTime, setCurrentTime] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [dragValue, setDragValue] = useState(0);
   const [isShuffle, setIsShuffle] = useState(false);
@@ -59,7 +68,51 @@ function App() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isPlayerMaximized, setIsPlayerMaximized] = useState(false);
-  const isFirstLoad = useRef(!!localStorage.getItem('lastPlayedSong'));
+  const isFirstLoad = useRef(false);
+
+  const [freqData, setFreqData] = useState(new Array(16).fill(10));
+  const freqIntervalRef = useRef(null);
+
+  useEffect(() => {
+    if (isPlaying) {
+      freqIntervalRef.current = setInterval(() => {
+        setFreqData(prev => prev.map(() => Math.floor(Math.random() * 85) + 15));
+      }, 100);
+    } else {
+      if (freqIntervalRef.current) clearInterval(freqIntervalRef.current);
+      setFreqData(new Array(16).fill(5));
+    }
+    return () => {
+      if (freqIntervalRef.current) clearInterval(freqIntervalRef.current);
+    };
+  }, [isPlaying]);
+
+  // Kullanıcı değiştiğinde/giriş yaptığında kullanıcının en son çaldığı şarkı ve süreyi yükle
+  useEffect(() => {
+    if (user) {
+      const userId = user._id || user.id;
+      const savedSong = localStorage.getItem(`lastPlayedSong_${userId}`);
+      const savedTime = localStorage.getItem(`lastPlayedSongTime_${userId}`);
+      
+      if (savedSong) {
+        isFirstLoad.current = true;
+        setCurrentSong(JSON.parse(savedSong));
+      } else {
+        setCurrentSong(null);
+      }
+      
+      if (savedTime) {
+        setCurrentTime(parseFloat(savedTime));
+      } else {
+        setCurrentTime(0);
+      }
+    } else {
+      setCurrentSong(null);
+      setCurrentTime(0);
+      setIsPlaying(false);
+      isFirstLoad.current = false;
+    }
+  }, [user]);
   
   const timeoutRef = useRef(null);
 
@@ -126,8 +179,9 @@ function App() {
 
   // Yeni şarkı seçildiğinde veya değiştiğinde localStorage'a kaydet ve oynatma mantığı
   useEffect(() => {
-    if (currentSong) {
-      localStorage.setItem('lastPlayedSong', JSON.stringify(currentSong));
+    if (currentSong && user) {
+      const userId = user._id || user.id;
+      localStorage.setItem(`lastPlayedSong_${userId}`, JSON.stringify(currentSong));
       
       // Eğer ilk açılış (restore) değilse şarkıyı oynat ve sağ barı aç
       if (!isFirstLoad.current) {
@@ -143,7 +197,7 @@ function App() {
       }
 
       // Geçmişe ekle
-      const saved = JSON.parse(localStorage.getItem('recentPlays') || '[]');
+      const saved = JSON.parse(localStorage.getItem(`recentPlays_${userId}`) || '[]');
       const newPlay = {
          id: currentSong.id || currentSong._id,
          title: currentSong.title,
@@ -154,16 +208,20 @@ function App() {
       };
       
       const updated = [newPlay, ...saved.filter(s => s.id !== newPlay.id)].slice(0, 50);
-      localStorage.setItem('recentPlays', JSON.stringify(updated));
+      localStorage.setItem(`recentPlays_${userId}`, JSON.stringify(updated));
     }
-  }, [currentSong]);
+  }, [currentSong, user]);
 
   if (!user) {
     return (
-      <>
+      <ErrorBoundary>
         <AnimatedBackground />
-        <Login onLoginSuccess={(userData) => setUser(userData)} />
-      </>
+        <Routes>
+          <Route path="/login" element={<Login onLoginSuccess={(userData) => setUser(userData)} />} />
+          <Route path="/admin/login" element={<AdminLogin setUser={setUser} />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </ErrorBoundary>
     );
   }
 
@@ -266,176 +324,225 @@ function App() {
     <ErrorBoundary>
       <AnimatedBackground />
         <div className="spotify-layout-modern">
-          <TopNavBar 
-            user={user} 
-            setCurrentSong={setCurrentSong} 
-            albums={albums} 
-            setAlbums={setAlbums} 
-            onToggleMobileMenu={() => setIsMobileMenuOpen(true)} 
-          />
+          {!isAdminPage && (
+            <TopNavBar 
+              user={user} 
+              setCurrentSong={setCurrentSong} 
+              albums={albums} 
+              setAlbums={setAlbums} 
+              onToggleMobileMenu={() => setIsMobileMenuOpen(true)} 
+            />
+          )}
           
           {/* Mobil Yan Menü (Hamburger Çekmecesi) */}
-          <div className={`mobile-sidebar-drawer ${isMobileMenuOpen ? 'open' : ''}`}>
-            <div className="mobile-sidebar-header">
-              <div className="mobile-logo">
-                <i className="fa-brands fa-spotify"></i>
-                <span>Menü</span>
-              </div>
-              <button className="close-mobile-menu-btn" onClick={() => setIsMobileMenuOpen(false)} title="Kapat">
-                <i className="fa-solid fa-xmark"></i>
-              </button>
-            </div>
-            <nav className="mobile-sidebar-nav" onClick={() => setIsMobileMenuOpen(false)}>
-              <ul>
-                <li>
-                  <NavLink to="/songs" className={({ isActive }) => (isActive ? "active mobile-nav-item" : "mobile-nav-item")}>
-                    <i className="fa-solid fa-house"></i>
-                    <span>Ana Sayfa</span>
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/artists" className={({ isActive }) => (isActive ? "active mobile-nav-item" : "mobile-nav-item")}>
-                    <i className="fa-solid fa-users"></i>
-                    <span>Sanatçılar</span>
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/albums" className={({ isActive }) => (isActive ? "active mobile-nav-item" : "mobile-nav-item")}>
-                    <i className="fa-solid fa-book"></i>
-                    <span>Listelerim</span>
-                  </NavLink>
-                </li>
-              </ul>
-              
-              <div className="mobile-library-section">
-                <div className="mobile-library-header">
-                  <i className="fa-solid fa-heart"></i>
-                  <span>Favoriler</span>
+          {!isAdminPage && (
+            <div className={`mobile-sidebar-drawer ${isMobileMenuOpen ? 'open' : ''}`}>
+              <div className="mobile-sidebar-header">
+                <div className="mobile-logo">
+                  <i className="fa-brands fa-spotify"></i>
+                  <span>Menü</span>
                 </div>
-                <ul className="mobile-artist-list">
-                  {favoriteArtists.map(artist => (
-                    <li key={artist.id} className="mobile-artist-item">
-                      <NavLink to={`/artist/${encodeURIComponent(artist.name)}`} className="mobile-artist-link">
-                        <img 
-                          src={artist.imageUrl} 
-                          className="mobile-artist-img" 
-                          alt={artist.name} 
-                          onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }}
-                        />
-                        <span className="mobile-artist-name">{artist.name}</span>
-                      </NavLink>
-                    </li>
-                  ))}
-                </ul>
+                <button className="close-mobile-menu-btn" onClick={() => setIsMobileMenuOpen(false)} title="Kapat">
+                  <i className="fa-solid fa-xmark"></i>
+                </button>
               </div>
-            </nav>
-          </div>
-          {isMobileMenuOpen && <div className="mobile-sidebar-overlay" onClick={() => setIsMobileMenuOpen(false)}></div>}
+              <nav className="mobile-sidebar-nav" onClick={() => setIsMobileMenuOpen(false)}>
+                <ul>
+                  <li>
+                    <NavLink to="/songs" className={({ isActive }) => (isActive ? "active mobile-nav-item" : "mobile-nav-item")}>
+                      <i className="fa-solid fa-house"></i>
+                      <span>Ana Sayfa</span>
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/artists" className={({ isActive }) => (isActive ? "active mobile-nav-item" : "mobile-nav-item")}>
+                      <i className="fa-solid fa-users"></i>
+                      <span>Sanatçılar</span>
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/albums" className={({ isActive }) => (isActive ? "active mobile-nav-item" : "mobile-nav-item")}>
+                      <i className="fa-solid fa-book"></i>
+                      <span>Listelerim</span>
+                    </NavLink>
+                  </li>
+                </ul>
+                
+                <div className="mobile-library-section">
+                  <div className="mobile-library-header">
+                    <i className="fa-solid fa-heart"></i>
+                    <span>Favoriler</span>
+                  </div>
+                  <ul className="mobile-artist-list">
+                    {favoriteArtists.map(artist => (
+                      <li key={artist.id} className="mobile-artist-item">
+                        <NavLink to={`/artist/${encodeURIComponent(artist.name)}`} className="mobile-artist-link">
+                          <img 
+                            src={artist.imageUrl} 
+                            className="mobile-artist-img" 
+                            alt={artist.name} 
+                            onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }}
+                          />
+                          <span className="mobile-artist-name">{artist.name}</span>
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </nav>
+            </div>
+          )}
+          {!isAdminPage && isMobileMenuOpen && <div className="mobile-sidebar-overlay" onClick={() => setIsMobileMenuOpen(false)}></div>}
         
-        <div className="layout-body">
-          <div className="layout-left-wrapper">
-            <div className="main-view-modern">
+        <div className={isAdminPage ? "layout-body admin-layout-body" : "layout-body"}>
+          
+          {/* SOL MENÜ (NARROW SIDEBAR) */}
+          {!isAdminPage && (
+            <aside className="sidebar-narrow">
+              <div className="logo-icon">
+                <i className="fa-brands fa-spotify"></i>
+              </div>
               
-              {/* SOL MENÜ (NARROW SIDEBAR) */}
-              <aside className="sidebar-narrow">
-            <div className="logo-icon">
-              <i className="fa-brands fa-spotify"></i>
-            </div>
-            
-            <nav>
-              <ul>
-                <li>
-                  <NavLink to="/songs" className={({ isActive }) => (isActive ? "active expandable-nav-item" : "expandable-nav-item")}>
-                    <i className="fa-solid fa-house"></i>
-                    <span className="nav-text">Ana Sayfa</span>
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/artists" className={({ isActive }) => (isActive ? "active expandable-nav-item" : "expandable-nav-item")}>
-                    <i className="fa-solid fa-users"></i>
-                    <span className="nav-text">Sanatçılar</span>
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/albums" className={({ isActive }) => (isActive ? "active expandable-nav-item" : "expandable-nav-item")}>
-                    <i className="fa-solid fa-book"></i>
-                    <span className="nav-text">Listelerim</span>
-                  </NavLink>
-                </li>
-              </ul>
-              
-              <div className="library-section">
-                <div className="library-header expandable-nav-item">
-                  <i className="fa-solid fa-heart"></i>
-                  <span className="nav-text">Favoriler</span>
-                </div>
-                <ul className="sidebar-artist-list">
-                  {favoriteArtists.map(artist => (
-                    <li key={artist.id} className="sidebar-artist-item">
-                      <NavLink to={`/artist/${encodeURIComponent(artist.name)}`} className="sidebar-artist-link">
-                        <img 
-                          loading="lazy" 
-                          decoding="async" 
-                          src={artist.imageUrl} 
-                          className="nav-artist-img" 
-                          alt={artist.name} 
-                          onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }}
-                          onMouseEnter={(e) => {
-                             const rect = e.target.getBoundingClientRect();
-                             setHoveredArtist({ artist, top: rect.top + rect.height / 2, left: rect.right + 10 });
-                          }}
-                          onMouseLeave={() => setHoveredArtist(null)}
-                        />
+              <nav>
+                <ul>
+                  <li>
+                    <NavLink to="/songs" className={({ isActive }) => (isActive ? "active expandable-nav-item" : "expandable-nav-item")}>
+                      <i className="fa-solid fa-house"></i>
+                      <span className="nav-text">Ana Sayfa</span>
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/artists" className={({ isActive }) => (isActive ? "active expandable-nav-item" : "expandable-nav-item")}>
+                      <i className="fa-solid fa-users"></i>
+                      <span className="nav-text">Sanatçılar</span>
+                    </NavLink>
+                  </li>
+                  <li>
+                    <NavLink to="/albums" className={({ isActive }) => (isActive ? "active expandable-nav-item" : "expandable-nav-item")}>
+                      <i className="fa-solid fa-book"></i>
+                      <span className="nav-text">Listelerim</span>
+                    </NavLink>
+                  </li>
+                  <li className="library-menu-item">
+                    <div className="library-header expandable-nav-item">
+                      <i className="fa-solid fa-heart"></i>
+                      <span className="nav-text">Favoriler</span>
+                    </div>
+                    <ul className="sidebar-artist-list">
+                      {favoriteArtists.slice(0, 4).map(artist => (
+                        <li key={artist.id} className="sidebar-artist-item">
+                          <NavLink to={`/artist/${encodeURIComponent(artist.name)}`} className="sidebar-artist-link">
+                            <img 
+                              loading="lazy" 
+                              decoding="async" 
+                              src={artist.imageUrl} 
+                              className="nav-artist-img" 
+                              alt={artist.name} 
+                              onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }}
+                              onMouseEnter={(e) => {
+                                 const rect = e.target.getBoundingClientRect();
+                                 setHoveredArtist({ artist, top: rect.top + rect.height / 2, left: rect.right + 10 });
+                              }}
+                              onMouseLeave={() => setHoveredArtist(null)}
+                            />
+                          </NavLink>
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                  {user?.isAdmin && (
+                    <li style={{ marginTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '16px' }}>
+                      <NavLink to="/admin" className={({ isActive }) => (isActive ? "active expandable-nav-item" : "expandable-nav-item")} style={{ borderLeft: '3px solid #a855f7' }}>
+                        <i className="fa-solid fa-user-shield" style={{ color: '#a855f7' }}></i>
+                        <span className="nav-text" style={{ color: '#c084fc', fontWeight: '700' }}>Admin Paneli</span>
                       </NavLink>
                     </li>
-                  ))}
+                  )}
                 </ul>
-              </div>
-            </nav>
-          </aside>
+              </nav>
+            </aside>
+          )}
 
-          {/* ORTA ALAN (MÜZİK KÜTÜPHANESİ - DİNAMİK) */}
-          <main className="content-rounded">
-            <Routes>
-              <Route path="/" element={<Navigate to="/songs" replace />} />
-              <Route 
-                path="/songs" 
-                element={<Songs setCurrentSong={setCurrentSong} setSongs={setSongs} user={user} albums={albums} setAlbums={setAlbums} favoriteArtists={favoriteArtists} />} 
-              />
-              <Route 
-                path="/artists" 
-                element={<Artists user={user} favoriteArtists={favoriteArtists} setFavoriteArtists={setFavoriteArtists} />} 
-              />
-              <Route 
-                path="/search" 
-                element={<Search setCurrentSong={setCurrentSong} setSongs={setSongs} user={user} favoriteArtists={favoriteArtists} setFavoriteArtists={setFavoriteArtists} albums={albums} setAlbums={setAlbums} />} 
-              />
-              <Route 
-                path="/artist/:name" 
-                element={<ArtistDetail setCurrentSong={setCurrentSong} setSongs={setSongs} user={user} albums={albums} setAlbums={setAlbums} favoriteArtists={favoriteArtists} setFavoriteArtists={setFavoriteArtists} />} 
-              />
-              <Route 
-                path="/albums" 
-                element={<Albums setCurrentSong={setCurrentSong} albums={albums} setAlbums={setAlbums} user={user} />} 
-              />
-              <Route 
-                path="/profile" 
-                element={<Profile user={user} setUser={setUser} handleLogout={handleLogout} />} 
-              />
-              <Route path="/profile/account" element={<AccountSettings user={user} setUser={setUser} />} />
-              <Route path="/profile/premium" element={<PremiumPlan user={user} />} />
-              <Route path="/profile/stats" element={<ListeningStats />} />
-              <Route path="/profile/recent" element={<RecentPlays setCurrentSong={setCurrentSong} />} />
-              <Route path="/profile/updates" element={<Updates />} />
-              <Route path="/profile/settings" element={<PrivacySettings handleLogout={handleLogout} />} />
-              <Route path="*" element={<Songs setCurrentSong={setCurrentSong} setSongs={setSongs} user={user} albums={albums} setAlbums={setAlbums} />} />
-            </Routes>
-          </main>
-            </div>
+          <div className="layout-left-wrapper">
+              {/* ORTA ALAN (MÜZİK KÜTÜPHANESİ - DİNAMİK) */}
+              <main className={isAdminPage ? "content-rounded admin-content-layout" : isDetailPage ? "content-rounded detail-page-active" : "content-rounded"}>
+                <Routes>
+                  <Route path="/" element={<Navigate to="/songs" replace />} />
+                  <Route path="/login" element={<Navigate to="/songs" replace />} />
+                  <Route 
+                    path="/songs" 
+                    element={<Songs setCurrentSong={setCurrentSong} setSongs={setSongs} user={user} albums={albums} setAlbums={setAlbums} favoriteArtists={favoriteArtists} />} 
+                  />
+                  <Route 
+                    path="/artists" 
+                    element={<Artists user={user} favoriteArtists={favoriteArtists} setFavoriteArtists={setFavoriteArtists} />} 
+                  />
+                  <Route 
+                    path="/search" 
+                    element={<Search setCurrentSong={setCurrentSong} setSongs={setSongs} user={user} favoriteArtists={favoriteArtists} setFavoriteArtists={setFavoriteArtists} albums={albums} setAlbums={setAlbums} />} 
+                  />
+                  <Route 
+                    path="/artist/:name" 
+                    element={<ArtistDetail setCurrentSong={setCurrentSong} setSongs={setSongs} user={user} albums={albums} setAlbums={setAlbums} favoriteArtists={favoriteArtists} setFavoriteArtists={setFavoriteArtists} />} 
+                  />
+                  <Route 
+                    path="/albums" 
+                    element={<Albums setCurrentSong={setCurrentSong} albums={albums} setAlbums={setAlbums} user={user} />} 
+                  />
+                  <Route 
+                    path="/browse" 
+                    element={<Browse setCurrentSong={setCurrentSong} user={user} albums={albums} setAlbums={setAlbums} />} 
+                  />
+                  <Route 
+                    path="/profile" 
+                    element={<Profile user={user} setUser={setUser} handleLogout={handleLogout} />} 
+                  />
+                  <Route path="/profile/account" element={<AccountSettings user={user} setUser={setUser} />} />
+                  <Route path="/profile/premium" element={<PremiumPlan user={user} setUser={setUser} />} />
+                  <Route path="/profile/stats" element={<ListeningStats user={user} />} />
+                  <Route path="/profile/recent" element={<RecentPlays setCurrentSong={setCurrentSong} user={user} />} />
+                  <Route path="/profile/updates" element={<Updates />} />
+                  <Route path="/profile/settings" element={<PrivacySettings handleLogout={handleLogout} />} />
+                  {user?.isAdmin && (
+                    <Route path="/admin" element={<AdminDashboard user={user} handleLogout={handleLogout} />} />
+                  )}
+                  <Route 
+                    path="/admin/login" 
+                    element={user?.isAdmin ? <Navigate to="/admin" replace /> : <Navigate to="/songs" replace />} 
+                  />
+                  <Route 
+                    path="/songs/detail" 
+                    element={
+                      <SongDetail 
+                        currentSong={currentSong} 
+                        isPlaying={isPlaying} 
+                        togglePlay={togglePlay} 
+                        currentTime={currentTime} 
+                        duration={duration} 
+                        volume={volume} 
+                        setVolume={setVolume} 
+                        handleNextSong={handleNextSong} 
+                        handlePrevSong={handlePrevSong} 
+                        isShuffle={isShuffle} 
+                        setIsShuffle={setIsShuffle} 
+                        isRepeat={isRepeat} 
+                        setIsRepeat={setIsRepeat}
+                        formatTime={formatTime}
+                        handleProgressChange={handleProgressChange}
+                        handleProgressStart={handleProgressStart}
+                        handleProgressEnd={handleProgressEnd}
+                        isDragging={isDragging}
+                        dragValue={dragValue}
+                      />
+                    } 
+                  />
+                  <Route path="*" element={<Songs setCurrentSong={setCurrentSong} setSongs={setSongs} user={user} albums={albums} setAlbums={setAlbums} />} />
+                </Routes>
+              </main>
 
         {/* ALT MÜZİK ÇALMA ÇUBUĞU (MUSIC PLAYER BAR) */}
         {/* ALT MÜZİK ÇALMA ÇUBUĞU (MUSIC PLAYER BAR) */}
-        {currentSong && !isProfilePage && (
+        {currentSong && !isProfilePage && !isDetailPage && (
           <footer className={`music-player-bar ${isPlayerMaximized ? 'maximized' : 'minimized'}`}>
             
             {/* FULLSCREEN MAXIMIZED MOBİL PLAYER */}
@@ -455,6 +562,20 @@ function App() {
               <div className="maximized-player-body">
                 <div className="maximized-cover-wrapper">
                   <img src={currentSong.coverUrl} alt={currentSong.title} className="maximized-cover-img" onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }} />
+                </div>
+
+                {/* Maximized visualizer frequency spectrum */}
+                <div className="maximized-freq-analyzer">
+                  {freqData.map((height, idx) => (
+                    <div 
+                      key={idx} 
+                      className="maximized-freq-bar" 
+                      style={{ 
+                        height: height + '%',
+                        background: `linear-gradient(to top, #1db954 0%, #1ed760 100%)`,
+                      }}
+                    ></div>
+                  ))}
                 </div>
 
                 <div className="maximized-song-info-row">
@@ -528,27 +649,47 @@ function App() {
 
             {/* STANDART MİNİMİZE PLAYER CONTAINER */}
             <div className="player-container" onClick={() => {
-              if (window.innerWidth <= 768) {
+              if (window.innerWidth < 768) {
                 setIsPlayerMaximized(true);
+              } else {
+                navigate('/songs/detail');
               }
             }}>
               
               <div 
                 className="player-song-info" 
                 onClick={(e) => {
-                  if (window.innerWidth > 768) {
-                    e.stopPropagation();
-                    navigate(`/artist/${encodeURIComponent(currentSong.artist)}`);
+                  e.stopPropagation();
+                  if (window.innerWidth < 768) {
+                    setIsPlayerMaximized(true);
+                  } else {
+                    navigate('/songs/detail');
                   }
                 }}
                 style={{ cursor: 'pointer' }}
-                title={`${currentSong.artist} sayfasına git`}
+                title="Şarkı detaylarını gör"
               >
                 <img loading="lazy" decoding="async" src={currentSong.coverUrl} alt={currentSong.title} className="player-cover"  onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }} />
                 <div className="song-details">
                   <h5>{currentSong.title}</h5>
                   <p>{currentSong.artist}</p>
                 </div>
+
+                {/* Mini Player Frequency EQ visualizer when playing */}
+                {isPlaying && (
+                  <div className="mini-player-eq">
+                    {freqData.slice(0, 6).map((height, idx) => (
+                      <div 
+                        key={idx} 
+                        className="mini-eq-bar" 
+                        style={{ 
+                          height: height + '%',
+                          background: '#1db954',
+                        }}
+                      ></div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="player-center-controls" onClick={(e) => e.stopPropagation()}>
@@ -587,6 +728,10 @@ function App() {
                 )}
               </div>
 
+              <div className="player-center-controls" onClick={(e) => e.stopPropagation()}>
+                {/* redundant volume? Let's check original. Ah! player-right-controls is there. */}
+              </div>
+
               <div className="player-right-controls" onClick={(e) => e.stopPropagation()}>
                 <span className="volume-icon"><i className="fa-solid fa-volume-high"></i></span>
                 <input 
@@ -617,12 +762,15 @@ function App() {
                   setDuration(e.target.duration);
                   
                   // Eğer ilk açılışta kaydedilmiş bir süre varsa oraya seek et
-                  const savedTime = localStorage.getItem('lastPlayedSongTime');
-                  if (savedTime && isFirstLoad.current) {
-                    const parsedTime = parseFloat(savedTime);
-                    e.target.currentTime = parsedTime;
-                    setCurrentTime(parsedTime);
-                    isFirstLoad.current = false;
+                  if (user) {
+                    const userId = user._id || user.id;
+                    const savedTime = localStorage.getItem(`lastPlayedSongTime_${userId}`);
+                    if (savedTime && isFirstLoad.current) {
+                      const parsedTime = parseFloat(savedTime);
+                      e.target.currentTime = parsedTime;
+                      setCurrentTime(parsedTime);
+                      isFirstLoad.current = false;
+                    }
                   }
                   
                   if (isPlaying && currentSong.audioUrl) {
@@ -636,7 +784,10 @@ function App() {
                   const time = e.target.currentTime;
                   if (!isDragging) {
                     setCurrentTime(time);
-                    localStorage.setItem('lastPlayedSongTime', time.toString());
+                    if (user) {
+                      const userId = user._id || user.id;
+                      localStorage.setItem(`lastPlayedSongTime_${userId}`, time.toString());
+                    }
                   }
                 }} 
                 onEnded={() => {

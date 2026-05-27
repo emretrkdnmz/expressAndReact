@@ -37,6 +37,8 @@ router.post('/register', async (req, res) => {
                 username: user.username,
                 email: user.email,
                 profilePicture: user.profilePicture,
+                premiumStatus: user.premiumStatus,
+                isAdmin: user.isAdmin,
                 token: generateToken(user._id)
             });
         } else {
@@ -61,6 +63,8 @@ router.post('/login', async (req, res) => {
                 username: user.username,
                 email: user.email,
                 profilePicture: user.profilePicture,
+                premiumStatus: user.premiumStatus,
+                isAdmin: user.isAdmin,
                 token: generateToken(user._id)
             });
         } else {

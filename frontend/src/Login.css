@@ -392,8 +392,15 @@
   transform: scale(0.98) !important;
 }
 
-/* HIDE MOBILE HEADER ELEMENTS ON DESKTOP */
-.mobile-overlay-header {
+/* HIDE MOBILE-ONLY ELEMENTS ON DESKTOP */
+.mobile-overlay-header,
+.mobile-global-background,
+.mobile-auth-switch,
+.bottom-sheet-handle,
+.mobile-equalizer-wrapper,
+.mobile-vinyl-wrapper,
+.mobile-logo-wrapper,
+.mobile-siri-wrapper {
   display: none !important;
 }
 
@@ -402,93 +409,354 @@
 /* ========================================== */
 @media (max-width: 768px) {
   .auth-container {
-    overflow-y: auto !important;
+    overflow: hidden !important;
     position: relative !important;
+    height: 100vh !important;
+    width: 100vw !important;
   }
 
   .auth-card {
     width: 100vw !important;
     height: 100vh !important;
     flex-direction: column !important;
-    background: transparent !important; /* Set to transparent to reveal AnimatedBackground */
+    background: transparent !important;
     border-radius: 0 !important;
     box-shadow: none !important;
     padding: 0 !important;
-    overflow-y: auto !important;
+    overflow: hidden !important;
+    position: relative !important;
+    z-index: 2 !important;
   }
 
   .auth-desktop-overlay {
     display: none !important; /* Completely disabled on mobile */
   }
 
-  .auth-panel {
+  /* Force all panel variants to be completely transparent on mobile */
+  .auth-panel,
+  .left-panel,
+  .right-panel,
+  .view-login .left-panel,
+  .view-login .right-panel,
+  .view-register .left-panel,
+  .view-register .right-panel {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
     width: 100% !important;
     height: 100vh !important;
     padding: 0 !important;
-    display: none !important; /* Dynamic toggle */
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-end !important; /* Anchors the bottom sheet perfectly to the bottom edge */
+    background: transparent !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transition: opacity 0.45s ease, visibility 0.45s ease !important;
+    z-index: 2 !important;
+    overflow: hidden !important;
   }
 
-  /* Only display the active view's form/header block */
+  /* Smooth native fade in/out transitions between active panels */
   .view-login .left-panel {
-    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
   }
 
   .view-register .right-panel {
-    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
   }
 
-  /* TRANSLUCENT MOBILE HEADER WAVES (reveals background particles underneath) */
-  .mobile-overlay-header {
+  /* MOBILE-ONLY GLOBAL BACKGROUND WITH GORGEOUS DEEP GRADIENT & CANVAS PARTICLE OVERLAYS */
+  .mobile-global-background {
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: linear-gradient(135deg, #130a1c 0%, #07020b 100%) !important;
+    z-index: 1 !important;
+    overflow: hidden !important;
+  }
+
+  /* SIRI/APPLE-STYLE ORGANIC FLUID WHITE WAVES STYLING */
+  .mobile-siri-wrapper {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
-    text-align: center !important;
-    color: #ffffff !important;
-    background: linear-gradient(135deg, rgba(35, 18, 58, 0.65) 0%, rgba(13, 4, 22, 0.75) 100%) !important;
-    backdrop-filter: blur(20px) saturate(140%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
-    padding: 50px 24px 45px 24px !important;
-    border-radius: 0 0 50px 50px !important;
+    position: absolute !important;
+    top: 26% !important; /* Perfect vertical centering in the empty space */
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
     width: 100% !important;
-    box-sizing: border-box !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    z-index: 2 !important;
+    pointer-events: none !important;
   }
 
-  .mobile-overlay-header h2 {
-    font-size: 28px !important;
-    font-weight: 800 !important;
-    margin: 0 0 8px 0 !important;
-    font-family: 'Outfit', 'Inter', sans-serif !important;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
-  }
-
-  .mobile-overlay-header p {
-    font-size: 14px !important;
-    opacity: 0.85 !important;
-    margin: 0 0 20px 0 !important;
-    line-height: 1.4 !important;
-  }
-
-  .mobile-overlay-header .auth-btn-outline {
-    padding: 10px 28px !important;
-    font-size: 13px !important;
-    border-width: 1.5px !important;
-  }
-
-  /* Form padding adjustments on mobile */
-  .auth-form {
-    padding: 40px 24px 45px 24px !important;
-    max-width: none !important;
-    box-sizing: border-box !important;
-    flex: 1 !important;
+  .siri-wave-container {
+    position: relative !important;
+    width: 120px !important;
+    height: 120px !important;
+    display: flex !important;
+    align-items: center !important;
     justify-content: center !important;
-    background: #ffffff !important; /* Keep mobile form background solid white for readability */
+    overflow: visible !important;
+  }
+
+  /* Soft glowing radial background backing white blur */
+  .siri-glow-bg {
+    position: absolute !important;
+    width: 150px !important;
+    height: 150px !important;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, rgba(124, 58, 237, 0.05) 50%, transparent 100%) !important;
+    filter: blur(24px) !important;
+    z-index: 1 !important;
+    border-radius: 50% !important;
+    animation: siriPulseGlow 3s infinite ease-in-out alternate !important;
+  }
+
+  /* Base styling for fluid waves with premium neon white drop-shadows */
+  .siri-wave {
+    position: absolute !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.8) !important;
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.45), inset 0 0 12px rgba(255, 255, 255, 0.25) !important;
+    border-radius: 50% !important;
+    z-index: 2 !important;
+  }
+
+  /* 4 Overlapping fluid morphing waves with varying speed and opacities */
+  .siri-wave.wave-1 {
+    width: 100px !important;
+    height: 100px !important;
+    opacity: 0.9 !important;
+    animation: siriLiquidOne 6s infinite linear !important;
+  }
+
+  .siri-wave.wave-2 {
+    width: 92px !important;
+    height: 92px !important;
+    border-color: rgba(255, 255, 255, 0.45) !important;
+    opacity: 0.55 !important;
+    animation: siriLiquidTwo 7.5s infinite linear !important;
+  }
+
+  .siri-wave.wave-3 {
+    width: 106px !important;
+    height: 106px !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    opacity: 0.35 !important;
+    animation: siriLiquidThree 9s infinite linear !important;
+  }
+
+  .siri-wave.wave-4 {
+    width: 86px !important;
+    height: 86px !important;
+    border-color: rgba(255, 255, 255, 0.65) !important;
+    opacity: 0.75 !important;
+    animation: siriLiquidFour 5s infinite linear !important;
+  }
+
+  /* Spaced white glowing text under siri wave */
+  .mobile-siri-text {
+    margin-top: 24px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+    letter-spacing: 4px !important;
+    text-transform: uppercase !important;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4) !important;
+    animation: pulseText 2.5s infinite ease-in-out !important;
+    font-family: 'Outfit', 'Inter', sans-serif !important;
+  }
+
+  /* Custom Liquid morphing keys with rotation and shape changes */
+  @keyframes siriLiquidOne {
+    0% {
+      transform: rotate(0deg) scale(1);
+      border-radius: 43% 57% 41% 59% / 57% 43% 57% 43% !important;
+    }
+    50% {
+      transform: rotate(180deg) scale(1.06);
+      border-radius: 57% 43% 57% 43% / 43% 57% 43% 57% !important;
+    }
+    100% {
+      transform: rotate(360deg) scale(1);
+      border-radius: 43% 57% 41% 59% / 57% 43% 57% 43% !important;
+    }
+  }
+
+  @keyframes siriLiquidTwo {
+    0% {
+      transform: rotate(0deg) scale(1.05);
+      border-radius: 50% 50% 38% 62% / 49% 61% 39% 61% !important;
+    }
+    50% {
+      transform: rotate(-180deg) scale(0.95);
+      border-radius: 38% 62% 50% 50% / 61% 39% 61% 39% !important;
+    }
+    100% {
+      transform: rotate(-360deg) scale(1.05);
+      border-radius: 50% 50% 38% 62% / 49% 61% 39% 61% !important;
+    }
+  }
+
+  @keyframes siriLiquidThree {
+    0% {
+      transform: rotate(0deg) scale(0.96);
+      border-radius: 47% 53% 50% 50% / 40% 40% 60% 60% !important;
+    }
+    50% {
+      transform: rotate(180deg) scale(1.08);
+      border-radius: 53% 47% 50% 50% / 60% 60% 40% 40% !important;
+    }
+    100% {
+      transform: rotate(360deg) scale(0.96);
+      border-radius: 47% 53% 50% 50% / 40% 40% 60% 60% !important;
+    }
+  }
+
+  @keyframes siriLiquidFour {
+    0% {
+      transform: rotate(0deg) scale(1);
+      border-radius: 53% 47% 43% 57% / 55% 45% 55% 45% !important;
+    }
+    50% {
+      transform: rotate(-180deg) scale(1.08);
+      border-radius: 43% 57% 53% 47% / 45% 55% 45% 55% !important;
+    }
+    100% {
+      transform: rotate(-360deg) scale(1);
+      border-radius: 53% 47% 43% 57% / 55% 45% 55% 45% !important;
+    }
+  }
+
+  @keyframes siriPulseGlow {
+    0% {
+      transform: scale(0.85);
+      opacity: 0.4;
+    }
+    100% {
+      transform: scale(1.15);
+      opacity: 0.95;
+    }
+  }
+
+  @keyframes pulseText {
+    0%, 100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  /* Mobile curved top headers are completely hidden as requested */
+  .mobile-overlay-header {
+    display: none !important;
+  }
+
+  /* REDESIGN FORM TO ACT AS A TRUE BOTTOM SHEET (Flush at the bottom, left, and right) */
+  .auth-form {
+    width: 100% !important;
+    max-width: 100% !important; /* Full width touch on left and right screen borders */
+    margin: 0 !important; /* Zero margins to eliminate floating space */
+    box-sizing: border-box !important;
+    align-items: stretch !important;
+    padding: 24px 28px 45px 28px !important; /* Balanced native-like padding */
+    background: #ffffff !important; /* Solid premium white card bottom sheet */
+    border-radius: 32px 32px 0 0 !important; /* Premium curved top corners only! No curves on the bottom */
+    box-shadow: 0 -15px 45px rgba(0, 0, 0, 0.45) !important; /* Strong shadow casting upwards */
+    position: relative !important;
+    z-index: 3 !important;
+    margin-top: 0 !important; /* Override negative margin overlaps */
+    
+    /* Elegant slide-up transition from absolute bottom */
+    transform: translateY(100%) !important; /* Starts fully down off-screen */
+    opacity: 0 !important;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease !important;
   }
 
   .auth-form h2 {
-    font-size: 30px !important;
-    margin-bottom: 24px !important;
+    font-size: 28px !important;
+    font-weight: 800 !important;
+    color: #1a1523 !important;
+    margin: 0 0 20px 0 !important;
+    letter-spacing: -0.6px !important;
+  }
+
+  /* IOS/ANDROID GRAB HANDLE INDICATOR AT TOP OF SHEET */
+  .bottom-sheet-handle {
+    display: block !important;
+    width: 44px !important;
+    height: 5px !important;
+    background: #e2dbe9 !important;
+    border-radius: 10px !important;
+    margin: -8px auto 20px auto !important;
+    opacity: 0.8 !important;
+  }
+
+  /* MOBILE AUTH SWITCH REDIRECTION LINK STYLING */
+  .mobile-auth-switch {
+    display: block !important;
+    margin-top: 24px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: #6b5f7e !important;
+    font-family: 'Inter', sans-serif !important;
+    text-align: center !important;
+  }
+
+  .mobile-auth-switch span {
+    color: #7c3aed !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    margin-left: 4px !important;
+    transition: color 0.2s ease !important;
+  }
+
+  .mobile-auth-switch span:hover {
+    color: #4f46e5 !important;
+    text-decoration: underline !important;
+  }
+
+  /* ------------------------------------------------------------ */
+  /* Specific Panel Order & Styling for Dynamic Bottom Sheets    */
+  /* ------------------------------------------------------------ */
+
+  /* 1. LOGIN SCREEN: Slide up Login form bottom sheet */
+  .view-login .login-form {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+    transform: translateY(0) !important; /* Slide up to active visible state */
+  }
+
+  .view-login .register-form {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    transform: translateY(100%) !important;
+  }
+
+  /* 2. REGISTER SCREEN: Slide up Register form bottom sheet */
+  .view-register .register-form {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+    transform: translateY(0) !important; /* Slide up to active visible state */
+  }
+
+  .view-register .login-form {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    transform: translateY(100%) !important;
   }
 }
 

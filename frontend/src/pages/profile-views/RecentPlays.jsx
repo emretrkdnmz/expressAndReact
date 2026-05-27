@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const RecentPlays = ({ setCurrentSong }) => {
+const RecentPlays = ({ setCurrentSong, user }) => {
   const navigate = useNavigate();
   const [recentTracks, setRecentTracks] = useState([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('recentPlays');
-    if (saved) {
-      setRecentTracks(JSON.parse(saved));
+    if (user) {
+      const userId = user._id || user.id;
+      const saved = localStorage.getItem(`recentPlays_${userId}`);
+      if (saved) {
+        setRecentTracks(JSON.parse(saved));
+      } else {
+        setRecentTracks([]);
+      }
     }
-  }, []);
+  }, [user]);
 
   const formatTimeAgo = (isoString) => {
     if (!isoString) return '';

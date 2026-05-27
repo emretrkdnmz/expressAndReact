@@ -14,15 +14,73 @@ const TopNavBar = ({ user, setCurrentSong, albums, setAlbums, onToggleMobileMenu
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [suggestions, setSuggestions] = useState({ tracks: [], artists: [], users: [] });
   const [popularSuggestions, setPopularSuggestions] = useState({ tracks: [], artists: [], users: [] });
-  const [recentSearches, setRecentSearches] = useState(() => {
-    const saved = localStorage.getItem('recentSearches');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [recentSearches, setRecentSearches] = useState([]);
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef(null);
 
+  // Kullanıcı değiştiğinde veya giriş yapıldığında kullanıcının arama geçmişini yükle
+  useEffect(() => {
+    if (user) {
+      const userId = user._id || user.id;
+      const saved = localStorage.getItem(`recentSearches_${userId}`);
+      setRecentSearches(saved ? JSON.parse(saved) : []);
+    } else {
+      setRecentSearches([]);
+    }
+  }, [user]);
+
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const inputRef = useRef(null);
+
+  const [announcements, setAnnouncements] = useState([]);
+  const [isNotifDropdownOpen, setIsNotifDropdownOpen] = useState(false);
+  const notifRef = useRef(null);
+
+  // Fetch Announcements
+  useEffect(() => {
+    const fetchAnnouncements = async () => {
+      try {
+        if (!user || !user.token) return;
+        const res = await axios.get('http://localhost:5000/api/user/announcements', {
+          headers: { Authorization: `Bearer ${user.token}` }
+        });
+        
+        // Filter out dismissed announcements
+        const userId = user._id || user.id;
+        const dismissed = JSON.parse(localStorage.getItem(`dismissedAnnouncements_${userId}`) || '[]');
+        const activeAnnouncements = res.data.filter(ann => !dismissed.includes(ann._id));
+        
+        setAnnouncements(activeAnnouncements);
+      } catch (err) {
+        console.error("Duyurular yüklenemedi", err);
+      }
+    };
+    fetchAnnouncements();
+  }, [user]);
+
+  const handleDeleteAnnouncement = (id) => {
+    if (!user) return;
+    const userId = user._id || user.id;
+    const dismissed = JSON.parse(localStorage.getItem(`dismissedAnnouncements_${userId}`) || '[]');
+    if (!dismissed.includes(id)) {
+      dismissed.push(id);
+    }
+    localStorage.setItem(`dismissedAnnouncements_${userId}`, JSON.stringify(dismissed));
+    setAnnouncements(announcements.filter(ann => ann._id !== id));
+  };
+
+  // Click outside notification dropdown
+  useEffect(() => {
+    const handleClickOutsideNotif = (event) => {
+      if (notifRef.current && !notifRef.current.contains(event.target)) {
+        setIsNotifDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutsideNotif);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutsideNotif);
+    };
+  }, [notifRef]);
 
   // Fetch Popular data once for empty search state
   useEffect(() => {
@@ -103,19 +161,23 @@ const TopNavBar = ({ user, setCurrentSong, albums, setAlbums, onToggleMobileMenu
   };
 
   const addToRecentSearches = (item, type) => {
+    if (!user) return;
+    const userId = user._id || user.id;
     const newItem = { ...item, searchType: type };
     const idKey = item.id ? item.id : item._id;
     let updated = [newItem, ...recentSearches.filter(i => (i.id || i._id) !== idKey)];
     updated = updated.slice(0, 5); // Keep top 5
     setRecentSearches(updated);
-    localStorage.setItem('recentSearches', JSON.stringify(updated));
+    localStorage.setItem(`recentSearches_${userId}`, JSON.stringify(updated));
   };
 
   const removeFromRecentSearches = (e, id) => {
     e.stopPropagation();
+    if (!user) return;
+    const userId = user._id || user.id;
     const updated = recentSearches.filter(i => (i.id || i._id) !== id);
     setRecentSearches(updated);
-    localStorage.setItem('recentSearches', JSON.stringify(updated));
+    localStorage.setItem(`recentSearches_${userId}`, JSON.stringify(updated));
   };
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -225,7 +287,11 @@ const TopNavBar = ({ user, setCurrentSong, albums, setAlbums, onToggleMobileMenu
           <i className="fa-solid fa-house"></i>
         </button>
 
-        <div className="global-search-container" ref={dropdownRef}>
+        <button className="nav-home-btn" onClick={() => navigate('/browse')} title="Gözat" style={{ marginLeft: '8px' }}>
+          <i className="fa-solid fa-compass"></i>
+        </button>
+
+        <div className="global-search-container" ref={dropdownRef} style={{ marginLeft: '8px' }}>
           <form 
             className={`global-search-form ${isSearchExpanded ? 'expanded' : 'collapsed'}`} 
             onSubmit={handleSearchSubmit}
@@ -307,7 +373,53 @@ const TopNavBar = ({ user, setCurrentSong, albums, setAlbums, onToggleMobileMenu
       </div>
 
       <div className="nav-right">
-        <button className="nav-icon-btn"><i className="fa-regular fa-bell"></i></button>
+        <div className="notif-bell-container" ref={notifRef}>
+          <button className={`nav-icon-btn ${isNotifDropdownOpen ? 'active' : ''}`} onClick={() => setIsNotifDropdownOpen(!isNotifDropdownOpen)} title="Duyurular">
+            <i className="fa-regular fa-bell"></i>
+            {announcements.length > 0 && <span className="notif-count-badge">{announcements.length}</span>}
+          </button>
+          
+          {isNotifDropdownOpen && (
+            <div className="notif-dropdown-menu glass-card">
+              <div className="notif-dropdown-header">
+                <h3>Sistem Duyuruları</h3>
+              </div>
+              <div className="notif-dropdown-content">
+                {announcements.length > 0 ? (
+                  announcements.map(announcement => (
+                    <div key={announcement._id} className={`notif-dropdown-item type-${announcement.type}`}>
+                      <div className="notif-item-icon">
+                        {announcement.type === 'warning' && <i className="fa-solid fa-circle-exclamation" style={{color: '#f59e0b'}}></i>}
+                        {announcement.type === 'success' && <i className="fa-solid fa-circle-check" style={{color: '#1db954'}}></i>}
+                        {announcement.type === 'info' && <i className="fa-solid fa-circle-info" style={{color: '#a855f7'}}></i>}
+                      </div>
+                      <div className="notif-item-body">
+                        <h4>{announcement.title}</h4>
+                        <p>{announcement.message}</p>
+                        <span className="notif-item-date">{new Date(announcement.createdAt).toLocaleDateString('tr-TR')}</span>
+                      </div>
+                      <button 
+                        className="notif-delete-btn" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteAnnouncement(announcement._id);
+                        }}
+                        title="Duyuruyu Kapat"
+                      >
+                        <i className="fa-solid fa-xmark"></i>
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="notif-dropdown-empty">
+                    <i className="fa-regular fa-bell-slash"></i>
+                    <p>Henüz yeni bir duyuru bulunmuyor.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
         <button className="nav-icon-btn" onClick={() => setIsConnectionsModalOpen(true)} title="Bağlantılarım">
           <i className="fa-solid fa-user-group"></i>
         </button>

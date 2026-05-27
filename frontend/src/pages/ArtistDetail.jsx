@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AlbumModal from '../components/AlbumModal';
@@ -13,6 +13,41 @@ const ArtistDetail = ({ setCurrentSong, setSongs, user, albums, setAlbums, favor
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedSong, setSelectedSong] = useState(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleShareArtist = () => {
+    setDropdownOpen(false);
+    const artistLink = window.location.href;
+    navigator.clipboard.writeText(artistLink).then(() => {
+      alert(`"${artistInfo?.name || name}" paylaşım bağlantısı panoya kopyalandı!`);
+    }).catch(err => {
+      console.error("Paylaşım bağlantısı kopyalanamadı:", err);
+    });
+  };
+
+  const handleReportArtist = () => {
+    setDropdownOpen(false);
+    const reason = prompt(`"${artistInfo?.name || name}" isimli sanatçıyı bildirme nedeninizi belirtin:`);
+    if (reason === null) return; // User cancelled
+    if (reason.trim() === "") {
+      alert("Bildirme nedeni boş bırakılamaz!");
+      return;
+    }
+    alert("Geri bildiriminiz için teşekkür ederiz! Bu sanatçı incelemeye alınmıştır.");
+  };
 
   useEffect(() => {
     const fetchArtistData = async () => {
@@ -96,9 +131,23 @@ const ArtistDetail = ({ setCurrentSong, setSongs, user, albums, setAlbums, favor
                 {isFavorited() ? 'Takip Ediliyor' : 'Takip Et'}
               </button>
               
-              <button className="artist-more-btn">
-                <i className="fa-solid fa-ellipsis"></i>
-              </button>
+              <div className="artist-more-dropdown-container" ref={dropdownRef}>
+                <button className="artist-more-btn" onClick={() => setDropdownOpen(!dropdownOpen)} title="Daha Fazla">
+                  <i className="fa-solid fa-ellipsis"></i>
+                </button>
+                {dropdownOpen && (
+                  <div className="artist-dropdown-menu">
+                    <button className="dropdown-item" onClick={handleShareArtist}>
+                      <i className="fa-solid fa-share-nodes"></i>
+                      <span>Paylaş</span>
+                    </button>
+                    <button className="dropdown-item" onClick={handleReportArtist}>
+                      <i className="fa-solid fa-triangle-exclamation"></i>
+                      <span>Bildir</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             <h3 className="popular-heading" style={{ marginTop: '20px' }}>Popüler Şarkılar</h3>

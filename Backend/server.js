@@ -8,6 +8,7 @@ const authRoutes = require('./routes/authRoutes');
 const deezerRoutes = require('./routes/deezerRoutes');
 const libraryRoutes = require('./routes/libraryRoutes');
 const userRoutes = require('./routes/userRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const path = require('path');
 
 // Veritabanı Bağlantısını Başlat79
@@ -23,6 +24,7 @@ app.use('/api/auth', authRoutes); // Auth rotası eklendi
 app.use('/api/deezer', deezerRoutes);
 app.use('/api/library', libraryRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Statik Profil Fotoğrafları için (localhost:5000/uploads/...)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
