@@ -8,12 +8,25 @@ function Login({ onLoginSuccess }) {
   // Giriş mi kayıt mı ekranındayız? (true = Login, false = Register)
   const [isLoginView, setIsLoginView] = useState(true);
   
-  // Form inputları için state'ler
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  // Login form states
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+
+  // Registration form states
+  const [registerUsername, setRegisterUsername] = useState('');
+  const [registerEmail, setRegisterEmail] = useState('');
+  const [registerPassword, setRegisterPassword] = useState('');
+  const [registerError, setRegisterError] = useState('');
+
   const [isLoading, setIsLoading] = useState(false);
+
+  // Helper to switch views and reset errors
+  const handleSwitchView = (toLogin) => {
+    setIsLoginView(toLogin);
+    setLoginError('');
+    setRegisterError('');
+  };
 
   // Müzik notası animasyonu için yardımcı render fonksiyonu
   const renderFloatingNotes = () => {
@@ -50,19 +63,18 @@ function Login({ onLoginSuccess }) {
     );
   };
 
-  // Form Gönderildiğinde Çalışacak Fonksiyon
-  const handleSubmit = async (e) => {
+  // Login form submission
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setLoginError('');
     setIsLoading(true);
 
-    const endpoint = isLoginView ? '/api/auth/login' : '/api/auth/register';
-    const payload = isLoginView ? { email, password } : { username, email, password };
-
     try {
-      const response = await axios.post(`http://localhost:5000${endpoint}`, payload);
+      const response = await axios.post('http://localhost:5000/api/auth/login', {
+        email: loginEmail,
+        password: loginPassword
+      });
       
-      // Başarılıysa gelen kullanıcı bilgilerini ve token'ı localStorage'a kaydediyoruz
       localStorage.setItem('userToken', response.data.token);
       localStorage.setItem('userData', JSON.stringify(response.data));
 
@@ -70,7 +82,31 @@ function Login({ onLoginSuccess }) {
       onLoginSuccess(response.data);
     } catch (err) {
       setIsLoading(false);
-      setError(err.response?.data?.message || 'Giriş işlemi başarısız. Bilgilerinizi kontrol edin!');
+      setLoginError(err.response?.data?.message || 'Giriş işlemi başarısız. Bilgilerinizi kontrol edin!');
+    }
+  };
+
+  // Register form submission
+  const handleRegisterSubmit = async (e) => {
+    e.preventDefault();
+    setRegisterError('');
+    setIsLoading(true);
+
+    try {
+      const response = await axios.post('http://localhost:5000/api/auth/register', {
+        username: registerUsername,
+        email: registerEmail,
+        password: registerPassword
+      });
+      
+      localStorage.setItem('userToken', response.data.token);
+      localStorage.setItem('userData', JSON.stringify(response.data));
+
+      setIsLoading(false);
+      onLoginSuccess(response.data);
+    } catch (err) {
+      setIsLoading(false);
+      setRegisterError(err.response?.data?.message || 'Kayıt işlemi başarısız. Bilgilerinizi kontrol edin!');
     }
   };
 
@@ -82,17 +118,17 @@ function Login({ onLoginSuccess }) {
         <div className="auth-panel left-panel">
           
           {/* 1. LOGIN FORM (Always rendered on the left form side) */}
-          <form onSubmit={handleSubmit} className="auth-form login-form">
+          <form onSubmit={handleLoginSubmit} className="auth-form login-form">
             <h2>Login</h2>
             
-            {error && <div className="auth-error-toast">{error}</div>}
+            {loginError && <div className="auth-error-toast">{loginError}</div>}
 
             <div className="auth-input-group">
               <input 
                 type="email" 
                 placeholder="Username or Email" 
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)} 
+                value={loginEmail} 
+                onChange={(e) => setLoginEmail(e.target.value)} 
                 required 
               />
               <span className="auth-input-icon-right"><i className="fa-solid fa-user"></i></span>
@@ -102,8 +138,8 @@ function Login({ onLoginSuccess }) {
               <input 
                 type="password" 
                 placeholder="Password" 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)} 
+                value={loginPassword} 
+                onChange={(e) => setLoginPassword(e.target.value)} 
                 required 
               />
               <span className="auth-input-icon-right"><i className="fa-solid fa-lock"></i></span>
@@ -135,7 +171,7 @@ function Login({ onLoginSuccess }) {
             {renderFloatingNotes()}
             <h2>Welcome Back!</h2>
             <p>Already have an account?</p>
-            <button type="button" className="auth-btn-outline" onClick={() => { setIsLoginView(true); setError(''); }}>
+            <button type="button" className="auth-btn-outline" onClick={() => handleSwitchView(true)}>
               Login
             </button>
           </div>
@@ -145,17 +181,17 @@ function Login({ onLoginSuccess }) {
         <div className="auth-panel right-panel">
           
           {/* 1. REGISTRATION FORM (Always rendered on the right form side) */}
-          <form onSubmit={handleSubmit} className="auth-form register-form">
+          <form onSubmit={handleRegisterSubmit} className="auth-form register-form">
             <h2>Registration</h2>
             
-            {error && <div className="auth-error-toast">{error}</div>}
+            {registerError && <div className="auth-error-toast">{registerError}</div>}
 
             <div className="auth-input-group">
               <input 
                 type="text" 
                 placeholder="Username" 
-                value={username} 
-                onChange={(e) => setUsername(e.target.value)} 
+                value={registerUsername} 
+                onChange={(e) => setRegisterUsername(e.target.value)} 
                 required 
               />
               <span className="auth-input-icon-right"><i className="fa-solid fa-user"></i></span>
@@ -165,8 +201,8 @@ function Login({ onLoginSuccess }) {
               <input 
                 type="email" 
                 placeholder="Email" 
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)} 
+                value={registerEmail} 
+                onChange={(e) => setRegisterEmail(e.target.value)} 
                 required 
               />
               <span className="auth-input-icon-right"><i className="fa-solid fa-envelope"></i></span>
@@ -176,8 +212,8 @@ function Login({ onLoginSuccess }) {
               <input 
                 type="password" 
                 placeholder="Password" 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)} 
+                value={registerPassword} 
+                onChange={(e) => setRegisterPassword(e.target.value)} 
                 required 
               />
               <span className="auth-input-icon-right"><i className="fa-solid fa-lock"></i></span>
@@ -205,7 +241,7 @@ function Login({ onLoginSuccess }) {
             {renderFloatingNotes()}
             <h2>Hello, Welcome!</h2>
             <p>Don't have an account?</p>
-            <button type="button" className="auth-btn-outline" onClick={() => { setIsLoginView(false); setError(''); }}>
+            <button type="button" className="auth-btn-outline" onClick={() => handleSwitchView(false)}>
               Register
             </button>
           </div>
@@ -220,7 +256,7 @@ function Login({ onLoginSuccess }) {
           <div className="overlay-slide-panel login-welcome-slide">
             <h2>Hello, Welcome!</h2>
             <p>Don't have an account?</p>
-            <button type="button" className="auth-btn-outline" onClick={() => { setIsLoginView(false); setError(''); }}>
+            <button type="button" className="auth-btn-outline" onClick={() => handleSwitchView(false)}>
               Register
             </button>
           </div>
@@ -229,7 +265,7 @@ function Login({ onLoginSuccess }) {
           <div className="overlay-slide-panel register-welcome-slide">
             <h2>Welcome Back!</h2>
             <p>Already have an account?</p>
-            <button type="button" className="auth-btn-outline" onClick={() => { setIsLoginView(true); setError(''); }}>
+            <button type="button" className="auth-btn-outline" onClick={() => handleSwitchView(true)}>
               Login
             </button>
           </div>
