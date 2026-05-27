@@ -79,6 +79,37 @@
   flex-direction: column !important;
   align-items: stretch !important;
   text-align: center !important;
+  transition: opacity 0.45s ease, transform 0.45s ease, visibility 0.45s ease !important;
+}
+
+/* Hide the form that is currently covered by the sliding overlay to prevent ghost input blurs */
+.view-login .login-form {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  transform: scale(0.92) !important; /* Elegant subtle scale when disappearing */
+}
+
+.view-register .register-form {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  transform: scale(0.92) !important;
+}
+
+/* Ensure the active form is fully visible, interactive, and beautifully positioned */
+.view-login .register-form {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+  transform: scale(1) !important;
+}
+
+.view-register .login-form {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+  transform: scale(1) !important;
 }
 
 .auth-form h2 {
