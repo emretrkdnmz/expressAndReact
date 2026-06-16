@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './AdminLogin.css';
 
-const AdminLogin = ({ setUser }) => {
+const AdminLogin = ({ onLoginSuccess }) => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,13 +28,10 @@ const AdminLogin = ({ setUser }) => {
         return;
       }
 
-      // Save admin credentials
-      localStorage.setItem('userToken', response.data.token);
       localStorage.setItem('userData', JSON.stringify(response.data));
 
-      setUser(response.data);
       setIsLoading(false);
-      navigate('/admin'); // Redirect to Admin Dashboard!
+      onLoginSuccess(response.data);
     } catch (err) {
       console.error(err);
       setIsLoading(false);

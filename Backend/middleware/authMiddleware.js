@@ -2,32 +2,33 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 const protect = async (req, res, next) => {
-    let token;
+    let token = req.cookies?.token;
 
-    // Hem 'authorization' hem 'Authorization' gelebilme ihtimaline karşı iki kapıyı da kontrol ediyoruz
+    // Eğer çerezde token yoksa, Authorization header'ını kontrol et (geriye dönük uyumluluk için)
     const authHeader = req.headers.authorization || req.headers.Authorization;
+    if (!token && authHeader && authHeader.startsWith('Bearer ')) {
+        const headerToken = authHeader.split(' ')[1];
+        if (headerToken && headerToken !== 'undefined' && headerToken !== 'null') {
+            token = headerToken;
+        }
+    }
 
-    if (authHeader && authHeader.startsWith('Bearer ')) {
+    if (token) {
         try {
-            // 'Bearer <token>' metnini ayırıyoruz
-            token = authHeader.split(' ')[1];
-
             // Token'ı gizli anahtarla çözüyoruz
             const decoded = jwt.verify(token, process.env.JWT_SECRET || 'spotify_gizli_anahtar');
 
             // Kullanıcıyı bulup şifresini gizleyerek req.user'a atıyoruz
             req.user = await User.findById(decoded.id).select('-password');
 
-            return next(); // Şarkıları getirmeye izin ver!
+            return next(); // Yetkili erişim, devam et!
         } catch (error) {
             console.error("Token doğrulama hatası:", error.message);
             return res.status(401).json({ message: 'Yetkisiz Erişim! Token geçersiz.' });
         }
     }
 
-    if (!token) {
-        return res.status(401).json({ message: 'Yetkisiz Erişim! Token bulunamadı.' });
-    }
+    return res.status(401).json({ message: 'Yetkisiz Erişim! Token bulunamadı.' });
 };
 
 const admin = (req, res, next) => {

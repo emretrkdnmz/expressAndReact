@@ -173,4 +173,4 @@ const Profile = ({ user, setUser, handleLogout }) => {
   );
 };
 
-export default Profile;
+export default React.memo(Profile);

@@ -113,7 +113,7 @@ router.post('/users', async (req, res) => {
 // PUT /api/admin/users/:id - Kullanıcıyı Düzenle
 router.put('/users/:id', async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(req.params.id).select('+password');
     if (!user) {
       return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
     }

@@ -315,11 +315,13 @@ const SongDetail = ({
               </button>
               
               <button 
-                className={`detail-control-btn repeat ${isRepeat ? 'active' : ''}`} 
-                onClick={() => setIsRepeat(!isRepeat)} 
-                title="Tekrarla"
+                className={`detail-control-btn repeat ${isRepeat > 0 ? 'active' : ''} ${isRepeat === 2 ? 'repeat-one' : ''}`} 
+                onClick={() => setIsRepeat((isRepeat + 1) % 3)} 
+                title={isRepeat === 2 ? "Şarkıyı Tekrarla" : isRepeat === 1 ? "Tümünü Tekrarla" : "Tekrarlama Kapalı"}
+                style={{ position: 'relative' }}
               >
                 <i className="fa-solid fa-repeat"></i>
+                {isRepeat === 2 && <span className="repeat-one-badge">1</span>}
               </button>
             </div>
           </div>

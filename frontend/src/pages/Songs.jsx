@@ -3,6 +3,7 @@ import axios from 'axios';
 import AlbumModal from '../components/AlbumModal';
 import LoadingSpinner from '../components/LoadingSpinner';
 import useIntersectionObserver from '../hooks/useIntersectionObserver';
+import EmptyState from '../components/EmptyState';
 
 const SongCard = React.memo(({ song, onPlay, onAdd }) => {
   return (
@@ -117,6 +118,173 @@ const LazyArtistRow = ({ artist, onSongsLoaded, setCurrentSong, handleAddClick }
   );
 };
 
+const InfiniteScrollSongs = ({ setCurrentSong, handleAddClick, onSongsLoaded }) => {
+  const [songs, setSongsData] = useState([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const loaderRef = React.useRef(null);
+
+  const fetchMoreSongs = useCallback(() => {
+    if (loading || !hasMore) return;
+    setLoading(true);
+    axios.get(`http://localhost:5000/api/deezer/songs?page=${page}&limit=10`, { timeout: 5000 })
+      .then(res => {
+        const newSongs = res.data.songs || [];
+        if (newSongs.length === 0) {
+          setHasMore(false);
+        } else {
+          setSongsData(prev => [...prev, ...newSongs]);
+          if (onSongsLoaded) onSongsLoaded(newSongs);
+          setHasMore(res.data.hasMore);
+          setPage(prev => prev + 1);
+        }
+      })
+      .catch(err => console.error("Error fetching infinite songs:", err))
+      .finally(() => setLoading(false));
+  }, [page, loading, hasMore, onSongsLoaded]);
+
+  React.useEffect(() => {
+    const rootElement = document.querySelector('.content-rounded');
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && hasMore && !loading) {
+        fetchMoreSongs();
+      }
+    }, { threshold: 0.1, root: rootElement, rootMargin: '0px 0px 300px 0px' });
+
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
+    }
+
+    return () => {
+      if (loaderRef.current) {
+        observer.unobserve(loaderRef.current);
+      }
+    };
+  }, [fetchMoreSongs, hasMore, loading]);
+
+  const handlePlay = useCallback((song) => setCurrentSong(song), [setCurrentSong]);
+  const handleAdd = useCallback((e, song) => handleAddClick(e, song), [handleAddClick]);
+
+  return (
+    <div className="song-row-container infinite-scroll-section" style={{ marginTop: '40px' }}>
+      <h2 className="row-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <i className="fa-solid fa-bolt" style={{ color: '#1db954' }}></i>
+        Sonsuz Parça Akışı: Daha Fazla Keşfet
+      </h2>
+      <div className="songs-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '20px', padding: '15px 0' }}>
+        {songs.map((song, index) => (
+          <SongCard key={`inf-song-${song.id}-${index}`} song={song} onPlay={handlePlay} onAdd={handleAdd} />
+        ))}
+      </div>
+      
+      <div ref={loaderRef} style={{ height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {loading && <LoadingSpinner fullScreen={false} />}
+        {!hasMore && songs.length > 0 && <p style={{ color: '#a7a7a7', fontSize: '14px', fontWeight: 'bold' }}>Bütün hit şarkıları keşfettiniz! 🎉</p>}
+      </div>
+    </div>
+  );
+};
+
+const InfiniteScrollAlbums = ({ user, setAlbums, albums }) => {
+  const [fetchedAlbums, setFetchedAlbums] = useState([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const loaderRef = React.useRef(null);
+
+  const fetchMoreAlbums = useCallback(() => {
+    if (loading || !hasMore) return;
+    setLoading(true);
+    axios.get(`http://localhost:5000/api/deezer/albums?page=${page}&limit=8`, { timeout: 5000 })
+      .then(res => {
+        const newAlbums = res.data.albums || [];
+        if (newAlbums.length === 0) {
+          setHasMore(false);
+        } else {
+          setFetchedAlbums(prev => [...prev, ...newAlbums]);
+          setHasMore(res.data.hasMore);
+          setPage(prev => prev + 1);
+        }
+      })
+      .catch(err => console.error("Error fetching infinite albums:", err))
+      .finally(() => setLoading(false));
+  }, [page, loading, hasMore]);
+
+  React.useEffect(() => {
+    const rootElement = document.querySelector('.content-rounded');
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && hasMore && !loading) {
+        fetchMoreAlbums();
+      }
+    }, { threshold: 0.1, root: rootElement, rootMargin: '0px 0px 300px 0px' });
+
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
+    }
+
+    return () => {
+      if (loaderRef.current) {
+        observer.unobserve(loaderRef.current);
+      }
+    };
+  }, [fetchMoreAlbums, hasMore, loading]);
+
+  const handleAddAlbum = async (album) => {
+    try {
+      const res = await axios.post('http://localhost:5000/api/library/albums', {
+        name: `${user.username} - ${album.name}`
+      }, {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      alert(`"${album.name}" listenize eklendi!`);
+      if (setAlbums) {
+        setAlbums([...albums, res.data]);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Albüm listenize eklenirken bir hata oluştu.");
+    }
+  };
+
+  return (
+    <div className="song-row-container infinite-scroll-section" style={{ marginTop: '40px', paddingBottom: '30px' }}>
+      <h2 className="row-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <i className="fa-solid fa-compact-disc" style={{ color: '#a855f7' }}></i>
+        Trend Albümleri Keşfet
+      </h2>
+      <div className="album-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px', padding: '15px 0' }}>
+        {fetchedAlbums.map((album, index) => (
+          <div key={`inf-album-${album.id}-${index}`} className="song-card vertical-card" style={{ cursor: 'default' }}>
+            <div className="card-actions">
+              <button 
+                className="icon-btn" 
+                onClick={() => handleAddAlbum(album)} 
+                title="Kendi Kitaplığıma Ekle"
+                style={{ background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <i className="fa-solid fa-bookmark" style={{ color: '#1db954' }}></i>
+              </button>
+            </div>
+            <div className="card-image-wrapper">
+              <img loading="lazy" decoding="async" src={album.coverUrl} alt={album.name} className="card-image square" onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }} />
+            </div>
+            <div className="card-info" style={{ marginTop: '10px' }}>
+              <h4 style={{ margin: '0 0 5px 0', fontSize: '15px', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{album.name}</h4>
+              <p style={{ margin: 0, fontSize: '13px', color: '#a7a7a7' }}>{album.artist} • {album.tracksCount} şarkı</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      <div ref={loaderRef} style={{ height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {loading && <LoadingSpinner fullScreen={false} />}
+        {!hasMore && fetchedAlbums.length > 0 && <p style={{ color: '#a7a7a7', fontSize: '14px', fontWeight: 'bold' }}>Bütün popüler albümleri keşfettiniz! 💿</p>}
+      </div>
+    </div>
+  );
+};
+
 const Songs = ({ setCurrentSong, setSongs, user, albums, setAlbums, favoriteArtists = [] }) => {
   const [globalSongs, setGlobalSongs] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -173,10 +341,13 @@ const Songs = ({ setCurrentSong, setSongs, user, albums, setAlbums, favoriteArti
       <div className="home-sections">
         
         {favoriteArtists.length === 0 && (
-           <div style={{padding: '20px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px'}}>
-             <h3 style={{marginTop: 0, color: '#fff'}}>Favori Sanatçılarınızı Ekleyin</h3>
-             <p style={{color: '#a7a7a7'}}>Sanatçı arayıp "Takip Et" butonuna basarak bu alanı özelleştirebilirsiniz.</p>
-           </div>
+          <EmptyState 
+            icon="fa-heart"
+            title="Henüz Takip Ettiğin Sanatçı Yok"
+            description="En sevdiğiniz sanatçıları takip ederek bu alanı tamamen size özel hale getirebilir, en popüler şarkılarını anında dinleyebilirsiniz!"
+            actionText="Sanatçıları Keşfet"
+            redirectPath="/search"
+          />
         )}
 
         {favoriteArtists[0] && <LazyArtistRow artist={favoriteArtists[0]} onSongsLoaded={handleSongsLoaded} setCurrentSong={setCurrentSong} handleAddClick={handleAddClick} />}
@@ -201,6 +372,9 @@ const Songs = ({ setCurrentSong, setSongs, user, albums, setAlbums, favoriteArti
         
         <LazyHorizontalRow title="Günün Yorgunluğunu Atmak İçin: Caz & Blues" fetchUrl="http://localhost:5000/api/deezer/genre/jazz" onSongsLoaded={handleSongsLoaded} setCurrentSong={setCurrentSong} handleAddClick={handleAddClick} />
 
+        <InfiniteScrollSongs setCurrentSong={setCurrentSong} handleAddClick={handleAddClick} onSongsLoaded={handleSongsLoaded} />
+
+        <InfiniteScrollAlbums user={user} setAlbums={setAlbums} albums={albums} />
       </div>
 
       <AlbumModal 
@@ -215,4 +389,4 @@ const Songs = ({ setCurrentSong, setSongs, user, albums, setAlbums, favoriteArti
   );
 };
 
-export default Songs;
+export default React.memo(Songs);

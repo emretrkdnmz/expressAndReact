@@ -832,3 +832,11 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Song Detail-specific purple theme for the repeat-one badge */
+.repeat-one-badge {
+  background: #a855f7 !important;
+  color: #fff !important;
+  border-color: #0c0818 !important;
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.4) !important;
+}

@@ -6,16 +6,18 @@
   height: 100vh;
   z-index: 0;
   overflow: hidden;
-  pointer-events: none; /* Tıklamaları engellemesin diye */
+  pointer-events: none;
+  transition: all 0.8s ease;
 }
 
+/* Original Purple */
 .gradient-pulse {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at 50% 50%, rgba(29, 185, 84, 0.03) 0%, rgba(0, 0, 0, 0) 70%);
+  background: radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.04) 0%, rgba(0, 0, 0, 0) 70%);
   animation: pulseBg 15s ease-in-out infinite alternate;
 }
 
@@ -23,13 +25,276 @@
   position: absolute;
   bottom: -100px;
   color: #fff;
-  filter: blur(2px);
+  filter: blur(1.5px);
   animation-name: floatUp;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
-  text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
 }
 
+/* Aurora Borealis */
+.aurora-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+}
+
+.aurora-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(140px);
+  mix-blend-mode: screen;
+  opacity: 0.15;
+  animation: auroraMove 25s infinite alternate ease-in-out;
+}
+
+.blob-1 {
+  width: 70vw;
+  height: 70vh;
+  background: radial-gradient(circle, rgba(0, 245, 212, 0.5) 0%, rgba(0, 0, 0, 0) 70%);
+  top: -20%;
+  left: -10%;
+  animation-duration: 28s;
+}
+
+.blob-2 {
+  width: 80vw;
+  height: 80vh;
+  background: radial-gradient(circle, rgba(167, 201, 87, 0.4) 0%, rgba(0, 0, 0, 0) 70%);
+  bottom: -30%;
+  right: -10%;
+  animation-duration: 32s;
+  animation-delay: -5s;
+}
+
+.blob-3 {
+  width: 60vw;
+  height: 60vh;
+  background: radial-gradient(circle, rgba(0, 180, 216, 0.35) 0%, rgba(0, 0, 0, 0) 70%);
+  top: 30%;
+  left: 40%;
+  animation-duration: 22s;
+  animation-delay: -10s;
+}
+
+/* Cyberpunk Sunset */
+.sunset-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.sunset-sun {
+  position: absolute;
+  width: 450px;
+  height: 450px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 85, 0, 0.12) 0%, rgba(255, 0, 127, 0.03) 60%, rgba(0,0,0,0) 100%);
+  bottom: -150px;
+  left: 50%;
+  transform: translateX(-50%);
+  filter: blur(60px);
+  animation: sunPulse 12s infinite alternate ease-in-out;
+}
+
+.sunset-glow-1 {
+  position: absolute;
+  width: 60vw;
+  height: 60vh;
+  background: radial-gradient(circle, rgba(255, 0, 127, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
+  top: -10%;
+  right: 5%;
+  filter: blur(100px);
+  animation: auroraMove 20s infinite alternate ease-in-out;
+}
+
+.sunset-glow-2 {
+  position: absolute;
+  width: 50vw;
+  height: 50vh;
+  background: radial-gradient(circle, rgba(255, 160, 0, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
+  bottom: 10%;
+  left: -5%;
+  filter: blur(90px);
+  animation: auroraMove 24s infinite alternate ease-in-out;
+  animation-delay: -4s;
+}
+
+.sunset-particle {
+  position: absolute;
+  background: #ff007f;
+  border-radius: 50%;
+  filter: blur(1px);
+  opacity: 0;
+  box-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f;
+  animation: floatUpSlow infinite linear;
+}
+
+/* Space Nebula */
+.space-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.nebula-dust {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(150px);
+  opacity: 0.12;
+  animation: auroraMove 35s infinite alternate ease-in-out;
+}
+
+.dust-1 {
+  width: 80vw;
+  height: 80vh;
+  background: radial-gradient(circle, rgba(0, 180, 216, 0.4) 0%, rgba(0, 8, 20, 0) 70%);
+  top: -10%;
+  left: 10%;
+}
+
+.dust-2 {
+  width: 70vw;
+  height: 70vh;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.3) 0%, rgba(0, 0, 0, 0) 70%);
+  bottom: -10%;
+  right: 10%;
+  animation-delay: -8s;
+}
+
+.nebula-star {
+  position: absolute;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+  opacity: 0.2;
+  animation: starTwinkle infinite ease-in-out;
+}
+
+/* Firefly Jungle */
+.jungle-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.forest-mist {
+  position: absolute;
+  width: 90vw;
+  height: 80vh;
+  background: radial-gradient(circle, rgba(167, 201, 87, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
+  top: 10%;
+  left: 5%;
+  filter: blur(130px);
+  animation: auroraMove 30s infinite alternate ease-in-out;
+}
+
+.forest-firefly {
+  position: absolute;
+  background: #a7c957;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #a7c957, 0 0 20px #a7c957;
+  opacity: 0;
+  animation: fireflyFloat infinite ease-in-out;
+}
+
+/* Light Theme Backgrounds */
+.light-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.light-glow-1 {
+  position: absolute;
+  width: 60vw;
+  height: 60vh;
+  background: radial-gradient(circle, rgba(255, 182, 193, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
+  top: -10%;
+  left: 5%;
+  filter: blur(100px);
+  animation: auroraMove 24s infinite alternate ease-in-out;
+}
+
+.light-glow-2 {
+  position: absolute;
+  width: 50vw;
+  height: 50vh;
+  background: radial-gradient(circle, rgba(135, 206, 235, 0.4) 0%, rgba(255, 255, 255, 0) 70%);
+  bottom: -10%;
+  right: 5%;
+  filter: blur(110px);
+  animation: auroraMove 28s infinite alternate ease-in-out;
+  animation-delay: -5s;
+}
+
+.light-bubble {
+  position: absolute;
+  background: linear-gradient(135deg, rgba(255, 182, 193, 0.5) 0%, rgba(135, 206, 235, 0.5) 100%);
+  border-radius: 50%;
+  bottom: -100px;
+  filter: blur(4px);
+  animation: floatUpSlow infinite linear;
+}
+
+/* Dark OLED Theme Backgrounds */
+.dark-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.dark-glow {
+  position: absolute;
+  width: 60vw;
+  height: 60vh;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.015) 0%, rgba(0, 0, 0, 0) 70%);
+  top: 30%;
+  left: 20%;
+  filter: blur(100px);
+  animation: sunPulse 15s infinite alternate ease-in-out;
+}
+
+.dark-particle {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  top: -50px;
+  filter: blur(1px);
+  animation: floatDownSlow infinite linear;
+}
+
+@keyframes floatDownSlow {
+  0% {
+    transform: translateY(0) scale(0.8) translateX(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  80% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(110vh) scale(1.2) translateX(-20px);
+    opacity: 0;
+  }
+}
+
+/* Animations */
 @keyframes floatUp {
   0% {
     transform: translateY(0) rotate(0deg) translateX(0);
@@ -43,6 +308,119 @@
 }
 
 @keyframes pulseBg {
-  0% { transform: scale(1); opacity: 0.5; }
-  100% { transform: scale(1.5); opacity: 1; }
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.4); opacity: 1; }
+}
+
+@keyframes auroraMove {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  50% {
+    transform: translate(10vw, 5vh) scale(1.15) rotate(120deg);
+  }
+  100% {
+    transform: translate(-5vw, 15vh) scale(0.9) rotate(360deg);
+  }
+}
+
+@keyframes sunPulse {
+  0% {
+    transform: translateX(-50%) scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(-50%) scale(1.15);
+    opacity: 1;
+  }
+}
+
+@keyframes floatUpSlow {
+  0% {
+    transform: translateY(0) scale(0.6) translateX(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.7;
+  }
+  80% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-110vh) scale(1.2) translateX(30px);
+    opacity: 0;
+  }
+}
+
+@keyframes starTwinkle {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes fireflyFloat {
+  0% {
+    transform: translate(0, 0) scale(0.8);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate(30px, -40px) scale(1.2);
+  }
+  80% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-10px, -100px) scale(0.8);
+    opacity: 0;
+  }
+}
+
+/* Active Playing States - Modern Glow & Dynamic Reaction Override */
+.animated-background.is-playing .music-note {
+  filter: blur(0.5px) drop-shadow(0 0 12px rgba(var(--accent-rgb), 0.7)) !important;
+  text-shadow: 0 0 20px rgba(var(--accent-rgb), 0.8), 0 0 30px rgba(255, 255, 255, 0.4);
+}
+
+.animated-background.is-playing .nebula-star {
+  box-shadow: 0 0 8px #fff, 0 0 15px rgba(var(--accent-rgb), 0.6);
+}
+
+.animated-background.is-playing .forest-firefly {
+  box-shadow: 0 0 12px #a7c957, 0 0 22px rgba(167, 201, 87, 0.9);
+}
+
+.animated-background.is-playing .light-bubble {
+  filter: blur(2px) drop-shadow(0 0 8px rgba(var(--accent-rgb), 0.25));
+}
+
+.animated-background.is-playing .dark-particle {
+  background: #ffffff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.75), 0 0 20px rgba(var(--accent-rgb), 0.4);
+}
+
+.animated-background.is-playing .sunset-particle {
+  box-shadow: 0 0 12px #ff007f, 0 0 22px rgba(255, 0, 127, 0.9);
+}
+
+.animated-background.is-playing .gradient-pulse {
+  background: radial-gradient(circle at 50% 50%, rgba(var(--accent-rgb), 0.08) 0%, rgba(0, 0, 0, 0) 65%) !important;
+  animation: pulseBg 8s ease-in-out infinite alternate !important;
+}
+
+.animated-background.is-playing .aurora-blob {
+  opacity: 0.22 !important;
+  filter: blur(120px) !important;
+}
+
+.animated-background.is-playing .sunset-sun {
+  background: radial-gradient(circle, rgba(255, 85, 0, 0.16) 0%, rgba(255, 0, 127, 0.06) 60%, rgba(0,0,0,0) 100%) !important;
+  animation: sunPulse 7s infinite alternate ease-in-out !important;
 }

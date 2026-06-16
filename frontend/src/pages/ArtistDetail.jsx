@@ -196,4 +196,4 @@ const ArtistDetail = ({ setCurrentSong, setSongs, user, albums, setAlbums, favor
   );
 };
 
-export default ArtistDetail;
+export default React.memo(ArtistDetail);

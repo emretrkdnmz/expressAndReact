@@ -7,11 +7,8 @@ const { protect } = require('../middleware/authMiddleware');
 // GET /api/library - Kullanıcının favori sanatçılarını ve albümlerini getir
 router.get('/', protect, async (req, res) => {
   try {
-    let interaction = await UserInteraction.findOne({ userId: req.user._id });
-    if (!interaction) {
-      interaction = await UserInteraction.create({ userId: req.user._id });
-    }
-
+    const interaction = await UserInteraction.findOne({ userId: req.user._id });
+    
     const playlists = await Playlist.find({ creatorId: req.user._id });
 
     const mappedAlbums = playlists.map(p => {
@@ -22,7 +19,7 @@ router.get('/', protect, async (req, res) => {
     });
 
     res.json({
-      favoriteArtists: interaction.followedArtists || [],
+      favoriteArtists: interaction ? interaction.followedArtists : [],
       albums: mappedAlbums
     });
   } catch (error) {
@@ -41,14 +38,14 @@ router.post('/favorites', protect, async (req, res) => {
     const isFavorited = interaction.followedArtists.find(a => a.id === artist.id);
 
     if (isFavorited) {
-      // Çıkar
       interaction.followedArtists = interaction.followedArtists.filter(a => a.id !== artist.id);
     } else {
-      // Ekle
       interaction.followedArtists.push(artist);
     }
 
     await interaction.save();
+    
+    // Frontend expects favoriteArtists array format
     res.json(interaction.followedArtists);
   } catch (error) {
     res.status(500).json({ message: 'Favori işlemi başarısız' });
@@ -58,18 +55,20 @@ router.post('/favorites', protect, async (req, res) => {
 // POST /api/library/albums - Yeni albüm (playlist) oluştur
 router.post('/albums', protect, async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, coverImage } = req.body;
     if (!name) return res.status(400).json({ message: 'Albüm ismi gerekli' });
 
     const newPlaylist = await Playlist.create({
       name,
       creatorId: req.user._id,
+      coverImage: coverImage || '/default-cover.svg',
       tracks: []
     });
 
     // Frontend, "songs" array bekliyor olabilir (albums objesinde). Playlist şemasındaki tracks'ı songs gibi dönelim
     const createdAlbum = newPlaylist.toObject();
     createdAlbum.songs = createdAlbum.tracks;
+    createdAlbum.coverUrl = createdAlbum.coverImage;
     
     res.status(201).json(createdAlbum);
   } catch (error) {
@@ -125,6 +124,65 @@ router.delete('/albums/:albumId', protect, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Albüm silinirken bir hata oluştu' });
+  }
+});
+
+// PUT /api/library/albums/:albumId - Albüm adını veya kapağını güncelle
+router.put('/albums/:albumId', protect, async (req, res) => {
+  try {
+    const { albumId } = req.params;
+    const { name, coverImage } = req.body;
+
+    const playlist = await Playlist.findOne({ _id: albumId, creatorId: req.user._id });
+    if (!playlist) return res.status(404).json({ message: 'Albüm bulunamadı veya yetkisiz' });
+
+    if (name !== undefined) playlist.name = name;
+    if (coverImage !== undefined) playlist.coverImage = coverImage;
+
+    await playlist.save();
+
+    const updatedAlbum = playlist.toObject();
+    updatedAlbum.songs = updatedAlbum.tracks;
+    updatedAlbum.coverUrl = updatedAlbum.coverImage;
+
+    res.json(updatedAlbum);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Albüm güncellenemedi' });
+  }
+});
+
+// DELETE /api/library/albums/:albumId/songs/:songId - Albümden şarkı çıkar
+router.delete('/albums/:albumId/songs/:songId', protect, async (req, res) => {
+  try {
+    const { albumId, songId } = req.params;
+
+    const playlist = await Playlist.findOne({ _id: albumId, creatorId: req.user._id });
+    if (!playlist) return res.status(404).json({ message: 'Albüm bulunamadı veya yetkisiz' });
+
+    playlist.tracks = playlist.tracks.filter(s => s.id !== songId && s._id !== songId);
+
+    // Kapak görseli güncelleme (seçilmiş bir gradyan varsa ve o gradyan varsayılan veya şarkı kapağı değilse ezilmesin)
+    if (playlist.tracks.length === 0) {
+      if (!playlist.coverImage || !playlist.coverImage.startsWith('linear-gradient')) {
+        playlist.coverImage = '/default-cover.svg';
+      }
+    } else {
+      if (!playlist.coverImage || !playlist.coverImage.startsWith('linear-gradient')) {
+        playlist.coverImage = playlist.tracks[0].coverUrl || '/default-cover.svg';
+      }
+    }
+
+    await playlist.save();
+
+    const updatedAlbum = playlist.toObject();
+    updatedAlbum.songs = updatedAlbum.tracks;
+    updatedAlbum.coverUrl = updatedAlbum.coverImage;
+
+    res.json(updatedAlbum);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Şarkı albümden çıkarılamadı' });
   }
 });
 

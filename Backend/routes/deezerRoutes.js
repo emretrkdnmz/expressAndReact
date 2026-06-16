@@ -63,10 +63,19 @@ router.get('/artists/:name', async (req, res) => {
   }
 });
 
-// GET /api/deezer/songs - Popüler Şarkıları Getir
+// GET /api/deezer/songs - Popüler Şarkıları Getir (Pagination ve Geriye Uyumlu!)
 router.get('/songs', async (req, res) => {
   try {
-    const response = await axios.get(`https://api.deezer.com/chart/0/tracks?limit=50`);
+    const isPaginated = req.query.page !== undefined;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const index = (page - 1) * limit;
+
+    // Eğer paginated ise limit ve index uygula, değilse geriye uyumluluk için 50 popüler parça çek
+    const apiLimit = isPaginated ? limit : 50;
+    const apiIndex = isPaginated ? index : 0;
+
+    const response = await axios.get(`https://api.deezer.com/chart/0/tracks?index=${apiIndex}&limit=${apiLimit}`);
 
     const songs = response.data.data.map(track => ({
       _id: track.id.toString(),
@@ -78,12 +87,60 @@ router.get('/songs', async (req, res) => {
       duration_ms: track.duration * 1000
     }));
 
-    res.json(songs);
+    if (isPaginated) {
+      res.json({
+        songs,
+        page,
+        limit,
+        hasMore: songs.length === limit
+      });
+    } else {
+      res.json(songs);
+    }
   } catch (error) {
     console.error('Şarkılar çekilirken hata:', error.message);
     res.status(500).json({ error: 'Şarkılar getirilemedi' });
   }
 });
+
+// GET /api/deezer/albums - Popüler Albümleri Getir (Pagination ve Geriye Uyumlu!)
+router.get('/albums', async (req, res) => {
+  try {
+    const isPaginated = req.query.page !== undefined;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const index = (page - 1) * limit;
+
+    const apiLimit = isPaginated ? limit : 20;
+    const apiIndex = isPaginated ? index : 0;
+
+    const response = await axios.get(`https://api.deezer.com/chart/0/albums?index=${apiIndex}&limit=${apiLimit}`);
+
+    const albums = response.data.data.map(album => ({
+      _id: album.id.toString(),
+      id: album.id.toString(),
+      name: album.title,
+      artist: album.artist ? album.artist.name : 'Bilinmeyen Sanatçı',
+      coverUrl: album.cover_xl || album.cover_medium || '/default-cover.svg',
+      tracksCount: album.nb_tracks || 0
+    }));
+
+    if (isPaginated) {
+      res.json({
+        albums,
+        page,
+        limit,
+        hasMore: albums.length === limit
+      });
+    } else {
+      res.json(albums);
+    }
+  } catch (error) {
+    console.error('Albümler çekilirken hata:', error.message);
+    res.status(500).json({ error: 'Albümler getirilemedi' });
+  }
+});
+
 
 // GET /api/deezer/genre/:genreName - Belirli türe göre şarkı getir
 router.get('/genre/:genreName', async (req, res) => {

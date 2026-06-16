@@ -95,7 +95,7 @@ router.get('/connections', protect, async (req, res) => {
 // PUT /api/user/profile - Profili Güncelle (Fotoğraf dahil)
 router.put('/profile', protect, upload.single('profilePicture'), async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).select('+password');
     if (!user) {
       return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
     }
@@ -130,7 +130,7 @@ router.put('/profile', protect, upload.single('profilePicture'), async (req, res
 // POST /api/user/premium - Premium Durumuna Yükselt (Ödeme Sonrası)
 router.post('/premium', protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).select('+password');
     if (!user) {
       return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
     }
@@ -156,7 +156,7 @@ router.post('/premium', protect, async (req, res) => {
 // POST /api/user/premium/cancel - Premium Durumunu İptal Et (Free Yap)
 router.post('/premium/cancel', protect, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).select('+password');
     if (!user) {
       return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
     }

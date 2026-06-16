@@ -119,10 +119,39 @@ const TopNavBar = ({ user, setCurrentSong, albums, setAlbums, onToggleMobileMenu
       } else {
         setSuggestions(popularSuggestions);
       }
-    }, 400);
+    }, 300); // 300ms Debounce
 
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery, popularSuggestions]);
+
+  // Debounced URL Navigation
+  useEffect(() => {
+    if (searchQuery === '') {
+      if (location.pathname === '/search') {
+        navigate('/search');
+      }
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(() => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const currentQ = searchParams.get('q') || '';
+      if (searchQuery.trim() && searchQuery !== currentQ) {
+        navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      }
+    }, 300); // 300ms Debounce
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery, navigate, location.pathname]);
+
+  // Sync search input state with URL query param on browser back/forward navigation
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const urlQuery = searchParams.get('q') || '';
+    if (urlQuery !== searchQuery) {
+      setSearchQuery(urlQuery);
+    }
+  }, [location.search]);
 
   // Close dropdown when clicked outside
   useEffect(() => {
@@ -287,7 +316,7 @@ const TopNavBar = ({ user, setCurrentSong, albums, setAlbums, onToggleMobileMenu
           <i className="fa-solid fa-house"></i>
         </button>
 
-        <button className="nav-home-btn" onClick={() => navigate('/browse')} title="Gözat" style={{ marginLeft: '8px' }}>
+        <button className="nav-home-btn nav-browse-btn" onClick={() => navigate('/browse')} title="Gözat" style={{ marginLeft: '8px' }}>
           <i className="fa-solid fa-compass"></i>
         </button>
 
@@ -311,13 +340,7 @@ const TopNavBar = ({ user, setCurrentSong, albums, setAlbums, onToggleMobileMenu
                 ref={inputRef}
                 onFocus={() => setIsDropdownOpen(true)}
                 onChange={(e) => {
-                  const val = e.target.value;
-                  setSearchQuery(val);
-                  if (val.trim()) {
-                    navigate(`/search?q=${encodeURIComponent(val)}`);
-                  } else {
-                    navigate(`/search`);
-                  }
+                  setSearchQuery(e.target.value);
                 }}
               />
               <div className="search-divider"></div>
@@ -373,6 +396,7 @@ const TopNavBar = ({ user, setCurrentSong, albums, setAlbums, onToggleMobileMenu
       </div>
 
       <div className="nav-right">
+        {/* Duyurular */}
         <div className="notif-bell-container" ref={notifRef}>
           <button className={`nav-icon-btn ${isNotifDropdownOpen ? 'active' : ''}`} onClick={() => setIsNotifDropdownOpen(!isNotifDropdownOpen)} title="Duyurular">
             <i className="fa-regular fa-bell"></i>
@@ -420,12 +444,11 @@ const TopNavBar = ({ user, setCurrentSong, albums, setAlbums, onToggleMobileMenu
             </div>
           )}
         </div>
+
+        {/* Bağlantılarım */}
         <button className="nav-icon-btn" onClick={() => setIsConnectionsModalOpen(true)} title="Bağlantılarım">
           <i className="fa-solid fa-user-group"></i>
         </button>
-        <div className="nav-profile-circle" onClick={() => navigate('/profile')}>
-          <img loading="lazy" decoding="async" src={user?.profilePicture || '/default-profile.svg'} alt="Profil" onError={(e) => { e.target.onerror = null; e.target.src = "/default-profile.svg" }} />
-        </div>
       </div>
 
       <AlbumModal 

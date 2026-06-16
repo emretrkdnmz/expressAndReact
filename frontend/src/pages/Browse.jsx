@@ -141,4 +141,4 @@ const Browse = ({ setCurrentSong, user, albums, setAlbums }) => {
   );
 };
 
-export default Browse;
+export default React.memo(Browse);

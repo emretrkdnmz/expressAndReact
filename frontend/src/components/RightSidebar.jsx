@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const RightSidebar = ({ currentSong, onClose, user, favoriteArtists, setFavoriteArtists, setCurrentSong }) => {
+const RightSidebar = ({ currentSong, onClose, user, favoriteArtists, setFavoriteArtists, setCurrentSong, isOpen }) => {
   if (!currentSong) return null;
 
   const [artistDetails, setArtistDetails] = useState(null);
@@ -92,7 +92,7 @@ const RightSidebar = ({ currentSong, onClose, user, favoriteArtists, setFavorite
   const artistImageUrl = artistDetails?.imageUrl || currentSong.coverUrl;
 
   return (
-    <aside className="right-sidebar">
+    <aside className={`right-sidebar ${isOpen ? 'open' : 'closed'}`}>
       <div className="right-sidebar-header">
         <h4>Şu An Çalıyor</h4>
         <div className="header-actions">

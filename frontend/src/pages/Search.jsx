@@ -4,6 +4,7 @@ import axios from 'axios';
 import AlbumModal from '../components/AlbumModal';
 
 import LoadingSpinner from '../components/LoadingSpinner';
+import EmptyState from '../components/EmptyState';
 
 const Search = ({ setCurrentSong, setSongs, user, favoriteArtists, setFavoriteArtists, albums, setAlbums }) => {
   const [query, setQuery] = useState('');
@@ -69,18 +70,13 @@ const Search = ({ setCurrentSong, setSongs, user, favoriteArtists, setFavoriteAr
     const urlQuery = searchParams.get('q');
     
     if (urlQuery) {
-      if (urlQuery !== query) {
-        setQuery(urlQuery);
-        const timeoutId = setTimeout(() => {
-          handleSearch(null, urlQuery);
-        }, 500); // 500ms debounce
-        return () => clearTimeout(timeoutId);
-      }
+      setQuery(urlQuery);
+      handleSearch(null, urlQuery);
     } else {
       setQuery('');
       setResults({ tracks: [], artists: [], users: [] });
     }
-  }, [location.search, query]);
+  }, [location.search]);
 
   const saveToHistory = async (searchTerm) => {
     if (!searchTerm.trim()) return;
@@ -196,91 +192,103 @@ const Search = ({ setCurrentSong, setSongs, user, favoriteArtists, setFavoriteAr
         <LoadingSpinner fullScreen={false} />
       ) : (
         <div className="search-results">
-          {results.tracks.length > 0 && (
-            <div className="results-section">
-              <h3 style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, marginBottom: '15px' }}>Şarkılar</h3>
-              <div className="track-list-container">
-                {results.tracks.map((song, index) => (
-                  <div key={song.id} className="track-list-item" onClick={() => setCurrentSong(song)}>
-                    <span className="track-list-index">{index + 1}</span>
-                    <img loading="lazy" decoding="async" src={song.coverUrl} alt={song.title} className="track-list-img" onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }} />
-                    <div className="track-list-info">
-                      <span className="track-list-title">{song.title}</span>
-                      <span className="track-list-artist">{song.artist}</span>
-                    </div>
-                    <div className="track-list-actions" onClick={(e) => e.stopPropagation()}>
-                      <button 
-                        className="icon-btn" 
-                        onClick={(e) => handleAddClick(e, song)} 
-                        title="Albüme Ekle"
-                        style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                      >
-                        <i className="fa-solid fa-plus" style={{ fontSize: '16px' }}></i>
-                      </button>
-                      <button className="track-list-play-btn" onClick={() => setCurrentSong(song)} title="Oynat">
-                        <i className="fa-solid fa-play"></i>
-                      </button>
-                    </div>
+          {results.tracks.length === 0 && results.artists.length === 0 && (!results.users || results.users.length === 0) && query.trim() !== '' ? (
+            <EmptyState 
+              icon="fa-magnifying-glass"
+              title="Arama Sonucu Bulunamadı"
+              description={`"${query}" araması ile eşleşen hiçbir parça, sanatçı veya kullanıcı bulunamadı. Lütfen kelimelerinizi kontrol edip tekrar deneyin.`}
+              actionText="Ana Sayfaya Dön"
+              redirectPath="/songs"
+            />
+          ) : (
+            <>
+              {results.tracks.length > 0 && (
+                <div className="results-section">
+                  <h3 style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800, marginBottom: '15px' }}>Şarkılar</h3>
+                  <div className="track-list-container">
+                    {results.tracks.map((song, index) => (
+                      <div key={song.id} className="track-list-item" onClick={() => setCurrentSong(song)}>
+                        <span className="track-list-index">{index + 1}</span>
+                        <img loading="lazy" decoding="async" src={song.coverUrl} alt={song.title} className="track-list-img" onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }} />
+                        <div className="track-list-info">
+                          <span className="track-list-title">{song.title}</span>
+                          <span className="track-list-artist">{song.artist}</span>
+                        </div>
+                        <div className="track-list-actions" onClick={(e) => e.stopPropagation()}>
+                          <button 
+                            className="icon-btn" 
+                            onClick={(e) => handleAddClick(e, song)} 
+                            title="Albüme Ekle"
+                            style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            <i className="fa-solid fa-plus" style={{ fontSize: '16px' }}></i>
+                          </button>
+                          <button className="track-list-play-btn" onClick={() => setCurrentSong(song)} title="Oynat">
+                            <i className="fa-solid fa-play"></i>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
+                </div>
+              )}
 
-          {results.artists.length > 0 && (
-            <div className="results-section" style={{marginTop: '40px'}}>
-              <h3>Sanatçılar</h3>
-              <div className="artist-grid">
-                {results.artists.map((artist) => (
-                  <div key={artist.id} className="artist-card" onClick={() => navigate(`/artist/${encodeURIComponent(artist.name)}`)}>
-                    <div className="card-actions">
-                      <button 
-                        className={`icon-btn ${isFavorited(artist.id) ? 'active-heart' : ''}`} 
-                        onClick={(e) => toggleFavoriteArtist(e, artist)}
-                        title="Favorilere Ekle"
-                      >
-                        <i className={`fa-${isFavorited(artist.id) ? 'solid' : 'regular'} fa-heart`}></i>
-                      </button>
-                    </div>
-                    <div className="artist-image-wrapper">
-                      <img loading="lazy" decoding="async" src={artist.imageUrl} alt={artist.name} className="artist-image circle"  onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }} />
-                    </div>
-                    <div className="artist-info">
-                      <h4>{artist.name}</h4>
-                    </div>
+              {results.artists.length > 0 && (
+                <div className="results-section" style={{marginTop: '40px'}}>
+                  <h3>Sanatçılar</h3>
+                  <div className="artist-grid">
+                    {results.artists.map((artist) => (
+                      <div key={artist.id} className="artist-card" onClick={() => navigate(`/artist/${encodeURIComponent(artist.name)}`)}>
+                        <div className="card-actions">
+                          <button 
+                            className={`icon-btn ${isFavorited(artist.id) ? 'active-heart' : ''}`} 
+                            onClick={(e) => toggleFavoriteArtist(e, artist)}
+                            title="Favorilere Ekle"
+                          >
+                            <i className={`fa-${isFavorited(artist.id) ? 'solid' : 'regular'} fa-heart`}></i>
+                          </button>
+                        </div>
+                        <div className="artist-image-wrapper">
+                          <img loading="lazy" decoding="async" src={artist.imageUrl} alt={artist.name} className="artist-image circle"  onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }} />
+                        </div>
+                        <div className="artist-info">
+                          <h4>{artist.name}</h4>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
+                </div>
+              )}
 
-          {results.users && results.users.length > 0 && (
-            <div className="results-section" style={{marginTop: '40px'}}>
-              <h3>Kullanıcılar</h3>
-              <div className="artist-grid">
-                {results.users.map((u) => (
-                  <div key={u._id} className="artist-card" style={{ cursor: 'default' }}>
-                    <div className="card-actions">
-                      <button 
-                        className={`icon-btn ${isUserFollowed(u._id) ? 'active-heart' : ''}`} 
-                        onClick={(e) => handleFollowUser(e, u._id)}
-                        title={isUserFollowed(u._id) ? "Takipten Çık" : "Takip Et"}
-                        style={{ width: 'auto', padding: '0 10px', borderRadius: '20px', fontSize: '12px' }}
-                      >
-                        {isUserFollowed(u._id) ? "Takip Ediliyor" : "Takip Et"}
-                      </button>
-                    </div>
-                    <div className="artist-image-wrapper">
-                      <img loading="lazy" decoding="async" src={u.profilePicture || '/default-profile.svg'} alt={u.username} className="artist-image circle"  onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }} />
-                    </div>
-                    <div className="artist-info">
-                      <h4>{u.username}</h4>
-                      <p style={{ fontSize: '12px', color: '#a0a0b0' }}>{u.followers} takipçi</p>
-                    </div>
+              {results.users && results.users.length > 0 && (
+                <div className="results-section" style={{marginTop: '40px'}}>
+                  <h3>Kullanıcılar</h3>
+                  <div className="artist-grid">
+                    {results.users.map((u) => (
+                      <div key={u._id} className="artist-card" style={{ cursor: 'default' }}>
+                        <div className="card-actions">
+                          <button 
+                            className={`icon-btn ${isUserFollowed(u._id) ? 'active-heart' : ''}`} 
+                            onClick={(e) => handleFollowUser(e, u._id)}
+                            title={isUserFollowed(u._id) ? "Takipten Çık" : "Takip Et"}
+                            style={{ width: 'auto', padding: '0 10px', borderRadius: '20px', fontSize: '12px' }}
+                          >
+                            {isUserFollowed(u._id) ? "Takip Ediliyor" : "Takip Et"}
+                          </button>
+                        </div>
+                        <div className="artist-image-wrapper">
+                          <img loading="lazy" decoding="async" src={u.profilePicture || '/default-profile.svg'} alt={u.username} className="artist-image circle"  onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }} />
+                        </div>
+                        <div className="artist-info">
+                          <h4>{u.username}</h4>
+                          <p style={{ fontSize: '12px', color: '#a0a0b0' }}>{u.followers} takipçi</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
@@ -297,4 +305,4 @@ const Search = ({ setCurrentSong, setSongs, user, favoriteArtists, setFavoriteAr
   );
 };
 
-export default Search;
+export default React.memo(Search);

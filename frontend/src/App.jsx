@@ -1,30 +1,70 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { Routes, Route, NavLink, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+axios.defaults.withCredentials = true;
 import ArtistHoverCard from './components/ArtistHoverCard';
 import Login from './Login';
-import AdminLogin from './pages/admin/AdminLogin';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import Songs from './pages/Songs';
-import Artists from './pages/Artists';
-import Search from './pages/Search';
-import ArtistDetail from './pages/ArtistDetail';
-import Albums from './pages/Albums';
-import Profile from './pages/Profile';
-import Browse from './pages/Browse';
-import AccountSettings from './pages/profile-views/AccountSettings';
-import PremiumPlan from './pages/profile-views/PremiumPlan';
-import ListeningStats from './pages/profile-views/ListeningStats';
-import RecentPlays from './pages/profile-views/RecentPlays';
-import Updates from './pages/profile-views/Updates';
-import PrivacySettings from './pages/profile-views/PrivacySettings';
 import TopNavBar from './components/TopNavBar';
-import SongDetail from './pages/SongDetail';
 import RightSidebar from './components/RightSidebar';
 import AnimatedBackground from './components/AnimatedBackground';
 import ErrorBoundary from './components/ErrorBoundary';
+import ProtectedRoute from './components/ProtectedRoute';
+import LoadingSpinner from './components/LoadingSpinner';
 import './App.css';
 import './index.css';
+
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const Songs = lazy(() => import('./pages/Songs'));
+const Artists = lazy(() => import('./pages/Artists'));
+const Search = lazy(() => import('./pages/Search'));
+const ArtistDetail = lazy(() => import('./pages/ArtistDetail'));
+const Albums = lazy(() => import('./pages/Albums'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Browse = lazy(() => import('./pages/Browse'));
+const AccountSettings = lazy(() => import('./pages/profile-views/AccountSettings'));
+const PremiumPlan = lazy(() => import('./pages/profile-views/PremiumPlan'));
+const ListeningStats = lazy(() => import('./pages/profile-views/ListeningStats'));
+const RecentPlays = lazy(() => import('./pages/profile-views/RecentPlays'));
+const Updates = lazy(() => import('./pages/profile-views/Updates'));
+const PrivacySettings = lazy(() => import('./pages/profile-views/PrivacySettings'));
+const SongDetail = lazy(() => import('./pages/SongDetail'));
+
+// Isolated Frequency Spectrum Visualizer for Maximized Player to avoid re-rendering entire App
+const MaximizedFreqAnalyzer = React.memo(({ isPlaying }) => {
+  return (
+    <div className={`maximized-freq-analyzer ${isPlaying ? 'is-playing' : ''}`}>
+      {Array.from({ length: 16 }).map((_, idx) => (
+        <div 
+          key={idx} 
+          className="maximized-freq-bar" 
+          style={{ 
+            background: 'var(--accent-color)',
+          }}
+        ></div>
+      ))}
+    </div>
+  );
+});
+MaximizedFreqAnalyzer.displayName = 'MaximizedFreqAnalyzer';
+
+// Isolated Frequency Spectrum Visualizer for Mini Player Bar to avoid re-rendering entire App
+const MiniPlayerFreqVisualizer = React.memo(({ isPlaying }) => {
+  return (
+    <div className={`mini-player-eq ${isPlaying ? 'is-playing' : ''}`}>
+      {Array.from({ length: 6 }).map((_, idx) => (
+        <div 
+          key={idx} 
+          className="mini-eq-bar" 
+          style={{ 
+            background: 'var(--accent-color)',
+          }}
+        ></div>
+      ))}
+    </div>
+  );
+});
+MiniPlayerFreqVisualizer.displayName = 'MiniPlayerFreqVisualizer';
 
 function App() {
   const location = useLocation();
@@ -32,6 +72,41 @@ function App() {
   const isProfilePage = location.pathname.startsWith('/profile');
   const isAdminPage = location.pathname.startsWith('/admin');
   const isDetailPage = location.pathname.startsWith('/songs/detail');
+
+  const [activeTheme, setActiveTheme] = useState(() => localStorage.getItem('appTheme') || 'purple');
+
+  useEffect(() => {
+    localStorage.setItem('appTheme', activeTheme);
+  }, [activeTheme]);
+
+  const [isThemeDropdownOpen, setIsThemeDropdownOpen] = useState(false);
+  const themeRef = useRef(null);
+
+  const [isMobileThemeOpen, setIsMobileThemeOpen] = useState(false);
+  const mobileThemeRef = useRef(null);
+
+  const themesList = [
+    { id: 'purple', name: 'Classic Purple', color1: '#a855f7', color2: '#0c0a12', icon: 'fa-moon' },
+    { id: 'aurora', name: 'Aurora Kutup', color1: '#00f5d4', color2: '#03100c', icon: 'fa-wand-magic-sparkles' },
+    { id: 'sunset', name: 'Neon Sunset', color1: '#ff007f', color2: '#0f0206', icon: 'fa-cloud-sun' },
+    { id: 'space', name: 'Space Nebula', color1: '#00b4d8', color2: '#010106', icon: 'fa-shuttle-space' },
+    { id: 'jungle', name: 'Firefly Jungle', color1: '#a7c957', color2: '#040905', icon: 'fa-tree' },
+    { id: 'light', name: 'Aydınlık Minimal', color1: '#ffffff', color2: '#cbd5e1', icon: 'fa-sun' },
+    { id: 'dark', name: 'Karanlık OLED', color1: '#111111', color2: '#000000', icon: 'fa-circle' }
+  ];
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (themeRef.current && !themeRef.current.contains(event.target)) {
+        setIsThemeDropdownOpen(false);
+      }
+      if (mobileThemeRef.current && !mobileThemeRef.current.contains(event.target)) {
+        setIsMobileThemeOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('userData');
@@ -61,7 +136,7 @@ function App() {
   const [isDragging, setIsDragging] = useState(false);
   const [dragValue, setDragValue] = useState(0);
   const [isShuffle, setIsShuffle] = useState(false);
-  const [isRepeat, setIsRepeat] = useState(false);
+  const [isRepeat, setIsRepeat] = useState(0); // 0: Off, 1: Repeat List, 2: Repeat One
   const [device, setDevice] = useState('AirPods');
   const [volume, setVolume] = useState(0.7);
   const [duration, setDuration] = useState(0);
@@ -70,22 +145,7 @@ function App() {
   const [isPlayerMaximized, setIsPlayerMaximized] = useState(false);
   const isFirstLoad = useRef(false);
 
-  const [freqData, setFreqData] = useState(new Array(16).fill(10));
-  const freqIntervalRef = useRef(null);
 
-  useEffect(() => {
-    if (isPlaying) {
-      freqIntervalRef.current = setInterval(() => {
-        setFreqData(prev => prev.map(() => Math.floor(Math.random() * 85) + 15));
-      }, 100);
-    } else {
-      if (freqIntervalRef.current) clearInterval(freqIntervalRef.current);
-      setFreqData(new Array(16).fill(5));
-    }
-    return () => {
-      if (freqIntervalRef.current) clearInterval(freqIntervalRef.current);
-    };
-  }, [isPlaying]);
 
   // Kullanıcı değiştiğinde/giriş yaptığında kullanıcının en son çaldığı şarkı ve süreyi yükle
   useEffect(() => {
@@ -116,8 +176,13 @@ function App() {
   
   const timeoutRef = useRef(null);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    try {
+      await axios.post('http://localhost:5000/api/auth/logout');
+    } catch (e) {
+      console.error("Logout request failed:", e);
+    }
     localStorage.removeItem('userToken');
     localStorage.removeItem('userData');
     setUser(null);
@@ -128,13 +193,28 @@ function App() {
     window.location.href = '/';
   };
 
+  const isPlayingRef = useRef(false);
+
   const resetInactivityTimer = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (isPlayingRef.current) return; // Müzik çalarken oturumu sonlandırma!
     timeoutRef.current = setTimeout(() => {
       alert("Hareketsiz kaldığınız için oturumunuz güvenli bir şekilde kapatıldı.");
       handleLogout();
     }, 120000);
   };
+
+  useEffect(() => {
+    isPlayingRef.current = isPlaying;
+    if (isPlaying) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    } else {
+      resetInactivityTimer();
+    }
+  }, [isPlaying]);
 
   useEffect(() => {
     if (user) {
@@ -212,15 +292,26 @@ function App() {
     }
   }, [currentSong, user]);
 
+  const handleLoginSuccess = (userData) => {
+    setUser(userData);
+    const destination = location.state?.from?.pathname || '/songs';
+    navigate(destination, { replace: true });
+  };
+
   if (!user) {
     return (
       <ErrorBoundary>
         <AnimatedBackground />
-        <Routes>
-          <Route path="/login" element={<Login onLoginSuccess={(userData) => setUser(userData)} />} />
-          <Route path="/admin/login" element={<AdminLogin setUser={setUser} />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
+        <Suspense fallback={<LoadingSpinner fullScreen={true} />}>
+          <Routes>
+            <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+            <Route path="/admin/login" element={<AdminLogin onLoginSuccess={(userData) => {
+              setUser(userData);
+              navigate('/admin', { replace: true });
+            }} />} />
+            <Route path="*" element={<Navigate to="/login" replace state={{ from: location }} />} />
+          </Routes>
+        </Suspense>
       </ErrorBoundary>
     );
   }
@@ -261,16 +352,32 @@ function App() {
     setIsDragging(false);
   };
 
-  const handleNextSong = () => {
+  const handleNextSong = (isAutoEnd = false) => {
     if (!songs || songs.length === 0) return;
     const currentIndex = songs.findIndex(
       (s) => (s.id || s._id) === (currentSong?.id || currentSong?._id)
     );
     let nextIndex;
     if (isShuffle) {
-      nextIndex = Math.floor(Math.random() * songs.length);
+      if (songs.length > 1) {
+        let randIndex;
+        do {
+          randIndex = Math.floor(Math.random() * songs.length);
+        } while (randIndex === currentIndex);
+        nextIndex = randIndex;
+      } else {
+        nextIndex = 0;
+      }
     } else {
-      nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % songs.length;
+      if (currentIndex === songs.length - 1) {
+        if (isAutoEnd && isRepeat === 0) {
+          setIsPlaying(false);
+          return;
+        }
+        nextIndex = 0;
+      } else {
+        nextIndex = currentIndex === -1 ? 0 : currentIndex + 1;
+      }
     }
     setCurrentSong(songs[nextIndex]);
     setIsPlaying(true);
@@ -281,7 +388,20 @@ function App() {
     const currentIndex = songs.findIndex(
       (s) => (s.id || s._id) === (currentSong?.id || currentSong?._id)
     );
-    const prevIndex = currentIndex === -1 ? songs.length - 1 : (currentIndex - 1 + songs.length) % songs.length;
+    let prevIndex;
+    if (isShuffle) {
+      if (songs.length > 1) {
+        let randIndex;
+        do {
+          randIndex = Math.floor(Math.random() * songs.length);
+        } while (randIndex === currentIndex);
+        prevIndex = randIndex;
+      } else {
+        prevIndex = 0;
+      }
+    } else {
+      prevIndex = currentIndex === -1 ? songs.length - 1 : (currentIndex - 1 + songs.length) % songs.length;
+    }
     setCurrentSong(songs[prevIndex]);
     setIsPlaying(true);
   };
@@ -322,7 +442,8 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <AnimatedBackground />
+      <div className={`app-theme-wrapper theme-${activeTheme}`}>
+        <AnimatedBackground activeTheme={activeTheme} isPlaying={isPlaying} />
         <div className="spotify-layout-modern">
           {!isAdminPage && (
             <TopNavBar 
@@ -331,6 +452,8 @@ function App() {
               albums={albums} 
               setAlbums={setAlbums} 
               onToggleMobileMenu={() => setIsMobileMenuOpen(true)} 
+              activeTheme={activeTheme}
+              setActiveTheme={setActiveTheme}
             />
           )}
           
@@ -390,6 +513,130 @@ function App() {
                   </ul>
                 </div>
               </nav>
+
+              {/* Mobil Temalar & Profil Alt Menüsü */}
+              <div className="mobile-sidebar-bottom-utils" style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
+                {/* Tema Seçici */}
+                <div className="theme-selector-container mobile-theme-container" ref={mobileThemeRef} style={{ position: 'relative' }}>
+                  <button 
+                    type="button"
+                    className={`mobile-theme-btn ${isMobileThemeOpen ? 'active' : ''}`} 
+                    onClick={(e) => { e.stopPropagation(); setIsMobileThemeOpen(!isMobileThemeOpen); }} 
+                    title="Canlı Temalar"
+                    style={{
+                      background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '8px 14px',
+                      borderRadius: '20px',
+                      color: '#fff',
+                      fontSize: '13px',
+                      fontWeight: '500'
+                    }}
+                  >
+                    <i className="fa-solid fa-palette" style={{ color: 'var(--accent-color)' }}></i>
+                    <span>Temalar</span>
+                  </button>
+                  
+                  {isMobileThemeOpen && (
+                    <div className="mobile-theme-dropdown-menu glass-card" style={{ 
+                      position: 'absolute', 
+                      left: '0', 
+                      bottom: '50px', 
+                      width: '220px', 
+                      background: 'rgba(15, 15, 25, 0.95)', 
+                      backdropFilter: 'blur(20px)',
+                      borderRadius: '16px',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      padding: '12px',
+                      zIndex: 99999,
+                      boxShadow: '0 -10px 30px rgba(0,0,0,0.5)'
+                    }}>
+                      <h4 style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#a0a0b0', textTransform: 'uppercase', letterSpacing: '1px' }}>Canlı Temalar</h4>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '180px', overflowY: 'auto' }}>
+                        {themesList.map(theme => (
+                          <button
+                            key={theme.id}
+                            type="button"
+                            onClick={() => {
+                              setActiveTheme(theme.id);
+                              setIsMobileThemeOpen(false);
+                              setIsMobileMenuOpen(false);
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                              background: activeTheme === theme.id ? 'rgba(255,255,255,0.1)' : 'transparent',
+                              border: 'none',
+                              padding: '6px 10px',
+                              borderRadius: '8px',
+                              color: '#fff',
+                              cursor: 'pointer',
+                              textAlign: 'left',
+                              width: '100%'
+                            }}
+                          >
+                            <div style={{ 
+                              width: '20px', 
+                              height: '20px', 
+                              borderRadius: '50%', 
+                              background: `linear-gradient(135deg, ${theme.color1}, ${theme.color2})`,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '9px',
+                              color: '#fff',
+                              flexShrink: 0
+                            }}>
+                              <i className={`fa-solid ${theme.icon}`}></i>
+                            </div>
+                            <span style={{ 
+                              fontSize: '13px', 
+                              color: activeTheme === theme.id ? 'var(--accent-color)' : '#fff',
+                              flex: 1
+                            }}>
+                              {theme.name}
+                            </span>
+                            {activeTheme === theme.id && (
+                              <i className="fa-solid fa-circle-check" style={{ color: 'var(--accent-color)', fontSize: '11px' }}></i>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Profil Linki */}
+                <div 
+                  className="mobile-profile-container" 
+                  onClick={() => {
+                    navigate('/profile');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px', 
+                    cursor: 'pointer',
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    padding: '6px 12px',
+                    borderRadius: '20px'
+                  }}
+                >
+                  <div style={{ width: '28px', height: '28px', borderRadius: '50%', overflow: 'hidden', border: '1.5px solid rgba(255,255,255,0.2)' }}>
+                    <img src={user?.profilePicture || '/default-profile.svg'} alt="Profil" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = "/default-profile.svg" }} />
+                  </div>
+                  <span style={{ fontSize: '13px', color: '#fff', fontWeight: '500', maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {user?.username || 'Profil'}
+                  </span>
+                </div>
+              </div>
             </div>
           )}
           {!isAdminPage && isMobileMenuOpen && <div className="mobile-sidebar-overlay" onClick={() => setIsMobileMenuOpen(false)}></div>}
@@ -429,7 +676,7 @@ function App() {
                       <span className="nav-text">Favoriler</span>
                     </div>
                     <ul className="sidebar-artist-list">
-                      {favoriteArtists.slice(0, 4).map(artist => (
+                      {favoriteArtists.slice(0, 3).map(artist => (
                         <li key={artist.id} className="sidebar-artist-item">
                           <NavLink to={`/artist/${encodeURIComponent(artist.name)}`} className="sidebar-artist-link">
                             <img 
@@ -439,12 +686,8 @@ function App() {
                               className="nav-artist-img" 
                               alt={artist.name} 
                               onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }}
-                              onMouseEnter={(e) => {
-                                 const rect = e.target.getBoundingClientRect();
-                                 setHoveredArtist({ artist, top: rect.top + rect.height / 2, left: rect.right + 10 });
-                              }}
-                              onMouseLeave={() => setHoveredArtist(null)}
                             />
+                            <span className="sidebar-artist-hover-name">{artist.name}</span>
                           </NavLink>
                         </li>
                       ))}
@@ -460,84 +703,181 @@ function App() {
                   )}
                 </ul>
               </nav>
+
+              <div className="sidebar-bottom-utils">
+                {/* Tema Seçici Dropdown */}
+                <div className="theme-selector-container sidebar-theme-container" ref={themeRef} style={{ position: 'relative' }}>
+                  <button 
+                    type="button"
+                    className={`nav-icon-btn ${isThemeDropdownOpen ? 'active' : ''}`} 
+                    onClick={() => setIsThemeDropdownOpen(!isThemeDropdownOpen)} 
+                    title="Canlı Temalar"
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '50%' }}
+                  >
+                    <i className="fa-solid fa-palette" style={{ fontSize: '20px', color: 'var(--accent-color)', transition: 'color 0.3s ease' }}></i>
+                  </button>
+                  {!isThemeDropdownOpen && <span className="sidebar-theme-hover-name">Canlı Temalar</span>}
+                  
+                  {isThemeDropdownOpen && (
+                    <div className="notif-dropdown-menu glass-card theme-dropdown-menu" style={{ 
+                      position: 'absolute', 
+                      left: '50px', 
+                      bottom: '0', 
+                      width: '240px', 
+                      background: 'rgba(15, 15, 25, 0.85)', 
+                      backdropFilter: 'blur(20px)',
+                      borderRadius: '16px',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      padding: '15px',
+                      zIndex: 99999,
+                      boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+                    }}>
+                      <h4 style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#a0a0b0', textTransform: 'uppercase', letterSpacing: '1px' }}>Canlı Temalar</h4>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {themesList.map(theme => (
+                          <button
+                            key={theme.id}
+                            type="button"
+                            onClick={() => {
+                              setActiveTheme(theme.id);
+                              setIsThemeDropdownOpen(false);
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '12px',
+                              background: activeTheme === theme.id ? 'rgba(255,255,255,0.1)' : 'transparent',
+                              border: activeTheme === theme.id ? '1px solid rgba(255,255,255,0.15)' : '1px solid transparent',
+                              padding: '8px 12px',
+                              borderRadius: '10px',
+                              color: 'inherit',
+                              cursor: 'pointer',
+                              textAlign: 'left',
+                              transition: 'all 0.2s ease',
+                              width: '100%'
+                            }}
+                            className="theme-select-item"
+                          >
+                            <div style={{ 
+                              width: '24px', 
+                              height: '24px', 
+                              borderRadius: '50%', 
+                              background: `linear-gradient(135deg, ${theme.color1}, ${theme.color2})`,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '11px',
+                              color: '#fff',
+                              border: '1px solid rgba(255,255,255,0.2)',
+                              flexShrink: 0
+                            }}>
+                              <i className={`fa-solid ${theme.icon}`} style={{ fontSize: '10px' }}></i>
+                            </div>
+                            <span style={{ 
+                              fontSize: '14px', 
+                              fontWeight: activeTheme === theme.id ? 'bold' : 'normal',
+                              color: activeTheme === theme.id ? 'var(--accent-color)' : 'inherit',
+                              flex: 1
+                            }}>
+                              {theme.name}
+                            </span>
+                            {activeTheme === theme.id && (
+                              <i className="fa-solid fa-circle-check" style={{ color: 'var(--accent-color)', fontSize: '12px' }}></i>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="profile-selector-container sidebar-profile-container" style={{ position: 'relative' }}>
+                  <div className="nav-profile-circle" onClick={() => navigate('/profile')} style={{ cursor: 'pointer', width: '40px', height: '40px', borderRadius: '50%', overflow: 'hidden', border: '2px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '10px' }}>
+                    <img loading="lazy" decoding="async" src={user?.profilePicture || '/default-profile.svg'} alt="Profil" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = "/default-profile.svg" }} />
+                  </div>
+                  <span className="sidebar-profile-hover-name">{user?.username || 'Profil'}</span>
+                </div>
+              </div>
             </aside>
           )}
 
           <div className="layout-left-wrapper">
               {/* ORTA ALAN (MÜZİK KÜTÜPHANESİ - DİNAMİK) */}
               <main className={isAdminPage ? "content-rounded admin-content-layout" : isDetailPage ? "content-rounded detail-page-active" : "content-rounded"}>
-                <Routes>
-                  <Route path="/" element={<Navigate to="/songs" replace />} />
-                  <Route path="/login" element={<Navigate to="/songs" replace />} />
-                  <Route 
-                    path="/songs" 
-                    element={<Songs setCurrentSong={setCurrentSong} setSongs={setSongs} user={user} albums={albums} setAlbums={setAlbums} favoriteArtists={favoriteArtists} />} 
-                  />
-                  <Route 
-                    path="/artists" 
-                    element={<Artists user={user} favoriteArtists={favoriteArtists} setFavoriteArtists={setFavoriteArtists} />} 
-                  />
-                  <Route 
-                    path="/search" 
-                    element={<Search setCurrentSong={setCurrentSong} setSongs={setSongs} user={user} favoriteArtists={favoriteArtists} setFavoriteArtists={setFavoriteArtists} albums={albums} setAlbums={setAlbums} />} 
-                  />
-                  <Route 
-                    path="/artist/:name" 
-                    element={<ArtistDetail setCurrentSong={setCurrentSong} setSongs={setSongs} user={user} albums={albums} setAlbums={setAlbums} favoriteArtists={favoriteArtists} setFavoriteArtists={setFavoriteArtists} />} 
-                  />
-                  <Route 
-                    path="/albums" 
-                    element={<Albums setCurrentSong={setCurrentSong} albums={albums} setAlbums={setAlbums} user={user} />} 
-                  />
-                  <Route 
-                    path="/browse" 
-                    element={<Browse setCurrentSong={setCurrentSong} user={user} albums={albums} setAlbums={setAlbums} />} 
-                  />
-                  <Route 
-                    path="/profile" 
-                    element={<Profile user={user} setUser={setUser} handleLogout={handleLogout} />} 
-                  />
-                  <Route path="/profile/account" element={<AccountSettings user={user} setUser={setUser} />} />
-                  <Route path="/profile/premium" element={<PremiumPlan user={user} setUser={setUser} />} />
-                  <Route path="/profile/stats" element={<ListeningStats user={user} />} />
-                  <Route path="/profile/recent" element={<RecentPlays setCurrentSong={setCurrentSong} user={user} />} />
-                  <Route path="/profile/updates" element={<Updates />} />
-                  <Route path="/profile/settings" element={<PrivacySettings handleLogout={handleLogout} />} />
-                  {user?.isAdmin && (
-                    <Route path="/admin" element={<AdminDashboard user={user} handleLogout={handleLogout} />} />
-                  )}
-                  <Route 
-                    path="/admin/login" 
-                    element={user?.isAdmin ? <Navigate to="/admin" replace /> : <Navigate to="/songs" replace />} 
-                  />
-                  <Route 
-                    path="/songs/detail" 
-                    element={
-                      <SongDetail 
-                        currentSong={currentSong} 
-                        isPlaying={isPlaying} 
-                        togglePlay={togglePlay} 
-                        currentTime={currentTime} 
-                        duration={duration} 
-                        volume={volume} 
-                        setVolume={setVolume} 
-                        handleNextSong={handleNextSong} 
-                        handlePrevSong={handlePrevSong} 
-                        isShuffle={isShuffle} 
-                        setIsShuffle={setIsShuffle} 
-                        isRepeat={isRepeat} 
-                        setIsRepeat={setIsRepeat}
-                        formatTime={formatTime}
-                        handleProgressChange={handleProgressChange}
-                        handleProgressStart={handleProgressStart}
-                        handleProgressEnd={handleProgressEnd}
-                        isDragging={isDragging}
-                        dragValue={dragValue}
-                      />
-                    } 
-                  />
-                  <Route path="*" element={<Songs setCurrentSong={setCurrentSong} setSongs={setSongs} user={user} albums={albums} setAlbums={setAlbums} />} />
-                </Routes>
+                <Suspense fallback={<LoadingSpinner fullScreen={true} />}>
+                  <Routes>
+                    <Route path="/" element={<Navigate to="/songs" replace />} />
+                    <Route path="/login" element={<Navigate to="/songs" replace />} />
+                    <Route 
+                      path="/songs" 
+                      element={<Songs setCurrentSong={setCurrentSong} setSongs={setSongs} user={user} albums={albums} setAlbums={setAlbums} favoriteArtists={favoriteArtists} />} 
+                    />
+                    <Route 
+                      path="/artists" 
+                      element={<Artists user={user} favoriteArtists={favoriteArtists} setFavoriteArtists={setFavoriteArtists} />} 
+                    />
+                    <Route 
+                      path="/search" 
+                      element={<Search setCurrentSong={setCurrentSong} setSongs={setSongs} user={user} favoriteArtists={favoriteArtists} setFavoriteArtists={setFavoriteArtists} albums={albums} setAlbums={setAlbums} />} 
+                    />
+                    <Route 
+                      path="/artist/:name" 
+                      element={<ArtistDetail setCurrentSong={setCurrentSong} setSongs={setSongs} user={user} albums={albums} setAlbums={setAlbums} favoriteArtists={favoriteArtists} setFavoriteArtists={setFavoriteArtists} />} 
+                    />
+                    <Route 
+                      path="/albums" 
+                      element={<Albums setCurrentSong={setCurrentSong} albums={albums} setAlbums={setAlbums} user={user} />} 
+                    />
+                    <Route 
+                      path="/browse" 
+                      element={<Browse setCurrentSong={setCurrentSong} user={user} albums={albums} setAlbums={setAlbums} />} 
+                    />
+                    <Route 
+                      path="/profile" 
+                      element={<Profile user={user} setUser={setUser} handleLogout={handleLogout} />} 
+                    />
+                    <Route path="/profile/account" element={<AccountSettings user={user} setUser={setUser} />} />
+                    <Route path="/profile/premium" element={<PremiumPlan user={user} setUser={setUser} />} />
+                    <Route path="/profile/stats" element={<ListeningStats user={user} />} />
+                    <Route path="/profile/recent" element={<RecentPlays setCurrentSong={setCurrentSong} user={user} />} />
+                    <Route path="/profile/updates" element={<Updates />} />
+                    <Route path="/profile/settings" element={<PrivacySettings handleLogout={handleLogout} />} />
+                    <Route element={<ProtectedRoute user={user} allowedRoles={['admin']} redirectPath="/songs" />}>
+                      <Route path="/admin" element={<AdminDashboard user={user} handleLogout={handleLogout} />} />
+                    </Route>
+                    <Route 
+                      path="/admin/login" 
+                      element={user?.isAdmin ? <Navigate to="/admin" replace /> : <Navigate to="/songs" replace />} 
+                    />
+                    <Route 
+                      path="/songs/detail" 
+                      element={
+                        <SongDetail 
+                          currentSong={currentSong} 
+                          isPlaying={isPlaying} 
+                          togglePlay={togglePlay} 
+                          currentTime={currentTime} 
+                          duration={duration} 
+                          volume={volume} 
+                          setVolume={setVolume} 
+                          handleNextSong={handleNextSong} 
+                          handlePrevSong={handlePrevSong} 
+                          isShuffle={isShuffle} 
+                          setIsShuffle={setIsShuffle} 
+                          isRepeat={isRepeat} 
+                          setIsRepeat={setIsRepeat}
+                          formatTime={formatTime}
+                          handleProgressChange={handleProgressChange}
+                          handleProgressStart={handleProgressStart}
+                          handleProgressEnd={handleProgressEnd}
+                          isDragging={isDragging}
+                          dragValue={dragValue}
+                        />
+                      } 
+                    />
+                    <Route path="*" element={<Songs setCurrentSong={setCurrentSong} setSongs={setSongs} user={user} albums={albums} setAlbums={setAlbums} />} />
+                  </Routes>
+                </Suspense>
               </main>
 
         {/* ALT MÜZİK ÇALMA ÇUBUĞU (MUSIC PLAYER BAR) */}
@@ -565,18 +905,7 @@ function App() {
                 </div>
 
                 {/* Maximized visualizer frequency spectrum */}
-                <div className="maximized-freq-analyzer">
-                  {freqData.map((height, idx) => (
-                    <div 
-                      key={idx} 
-                      className="maximized-freq-bar" 
-                      style={{ 
-                        height: height + '%',
-                        background: `linear-gradient(to top, #1db954 0%, #1ed760 100%)`,
-                      }}
-                    ></div>
-                  ))}
-                </div>
+                <MaximizedFreqAnalyzer isPlaying={isPlaying} />
 
                 <div className="maximized-song-info-row">
                   <div className="maximized-song-details" onClick={() => { setIsPlayerMaximized(false); navigate(`/artist/${encodeURIComponent(currentSong.artist)}`); }}>
@@ -602,9 +931,9 @@ function App() {
                     className="maximized-progress-slider"
                     disabled={!currentSong.audioUrl}
                     style={{
-                      background: `linear-gradient(to right, #1db954 ${
+                      background: `linear-gradient(to right, var(--progress-color, #ffffff) ${
                         duration ? ((isDragging ? dragValue : currentTime) / duration) * 100 : 0
-                      }%, rgba(255,255,255,0.2) ${duration ? ((isDragging ? dragValue : currentTime) / duration) * 100 : 0}%)`
+                      }%, var(--track-color, rgba(255,255,255,0.2)) ${duration ? ((isDragging ? dragValue : currentTime) / duration) * 100 : 0}%)`
                     }}
                   />
                   <div className="maximized-timestamps">
@@ -626,8 +955,14 @@ function App() {
                   <button className="maximized-control-btn next" onClick={handleNextSong} title="Sonraki Şarkı">
                     <i className="fa-solid fa-forward-step"></i>
                   </button>
-                  <button className={`maximized-control-btn repeat ${isRepeat ? 'active' : ''}`} onClick={() => setIsRepeat(!isRepeat)} title="Tekrarla">
+                  <button 
+                    className={`maximized-control-btn repeat ${isRepeat > 0 ? 'active' : ''} ${isRepeat === 2 ? 'repeat-one' : ''}`} 
+                    onClick={() => setIsRepeat((isRepeat + 1) % 3)} 
+                    title={isRepeat === 2 ? "Şarkıyı Tekrarla" : isRepeat === 1 ? "Tümünü Tekrarla" : "Tekrarlama Kapalı"}
+                    style={{ position: 'relative' }}
+                  >
                     <i className="fa-solid fa-repeat"></i>
+                    {isRepeat === 2 && <span className="repeat-one-badge">1</span>}
                   </button>
                 </div>
 
@@ -676,20 +1011,7 @@ function App() {
                 </div>
 
                 {/* Mini Player Frequency EQ visualizer when playing */}
-                {isPlaying && (
-                  <div className="mini-player-eq">
-                    {freqData.slice(0, 6).map((height, idx) => (
-                      <div 
-                        key={idx} 
-                        className="mini-eq-bar" 
-                        style={{ 
-                          height: height + '%',
-                          background: '#1db954',
-                        }}
-                      ></div>
-                    ))}
-                  </div>
-                )}
+                <MiniPlayerFreqVisualizer isPlaying={isPlaying} />
               </div>
 
               <div className="player-center-controls" onClick={(e) => e.stopPropagation()}>
@@ -716,7 +1038,7 @@ function App() {
                     className="custom-progress-bar"
                     disabled={!currentSong.audioUrl}
                     style={{
-                      background: `linear-gradient(to right, #1db954 ${
+                      background: `linear-gradient(to right, var(--accent-color) ${
                         duration ? ((isDragging ? dragValue : currentTime) / duration) * 100 : 0
                       }%, #4f4f4f ${duration ? ((isDragging ? dragValue : currentTime) / duration) * 100 : 0}%)`
                     }}
@@ -733,6 +1055,17 @@ function App() {
               </div>
 
               <div className="player-right-controls" onClick={(e) => e.stopPropagation()}>
+                <button 
+                  className="volume-step-btn" 
+                  onClick={() => {
+                    const newVol = Math.max(0, volume - 0.1);
+                    setVolume(newVol);
+                    if (audioRef.current) audioRef.current.volume = newVol;
+                  }} 
+                  title="Sesi Azalt"
+                >
+                  <i className="fa-solid fa-minus"></i>
+                </button>
                 <span className="volume-icon"><i className="fa-solid fa-volume-high"></i></span>
                 <input 
                   type="range" 
@@ -747,9 +1080,20 @@ function App() {
                   }}
                   className="volume-slider" 
                   style={{
-                    background: `linear-gradient(to right, #1db954 ${volume * 100}%, #4f4f4f ${volume * 100}%)`
+                    background: `linear-gradient(to right, var(--accent-color) ${volume * 100}%, #4f4f4f ${volume * 100}%)`
                   }}
                 />
+                <button 
+                  className="volume-step-btn" 
+                  onClick={() => {
+                    const newVol = Math.min(1, volume + 0.1);
+                    setVolume(newVol);
+                    if (audioRef.current) audioRef.current.volume = newVol;
+                  }} 
+                  title="Sesi Artır"
+                >
+                  <i className="fa-solid fa-plus"></i>
+                </button>
               </div>
               
               <audio 
@@ -791,7 +1135,7 @@ function App() {
                   }
                 }} 
                 onEnded={() => {
-                  if (isRepeat) {
+                  if (isRepeat === 2) {
                     if (audioRef.current) {
                       audioRef.current.currentTime = 0;
                       audioRef.current.play().catch(e => console.error(e));
@@ -799,7 +1143,7 @@ function App() {
                     setCurrentTime(0);
                     setIsPlaying(true);
                   } else {
-                    handleNextSong();
+                    handleNextSong(true);
                   }
                 }} 
                 style={{ display: 'none' }} 
@@ -810,16 +1154,15 @@ function App() {
 
           </div>
           
-          {isRightSidebarOpen && (
-            <RightSidebar 
-              currentSong={currentSong} 
-              onClose={() => setIsRightSidebarOpen(false)} 
-              user={user}
-              favoriteArtists={favoriteArtists}
-              setFavoriteArtists={setFavoriteArtists}
-              setCurrentSong={setCurrentSong}
-            />
-          )}
+          <RightSidebar 
+            isOpen={isRightSidebarOpen}
+            currentSong={currentSong} 
+            onClose={() => setIsRightSidebarOpen(false)} 
+            user={user}
+            favoriteArtists={favoriteArtists}
+            setFavoriteArtists={setFavoriteArtists}
+            setCurrentSong={setCurrentSong}
+          />
         </div>
 
         {hoveredArtist && (
@@ -831,6 +1174,7 @@ function App() {
           />
         )}
 
+      </div>
       </div>
     </ErrorBoundary>
   );

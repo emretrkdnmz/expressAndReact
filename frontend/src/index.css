@@ -16,9 +16,7 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: var(--app-bg-dark);
-  background-image: var(--app-bg-gradient);
-  background-attachment: fixed;
+  background-color: #050508;
   color: var(--text-main);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -42,4 +40,1414 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+/* App Theme Wrappers & System Variables Override */
+.app-theme-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--app-bg-dark);
+  background-image: var(--app-bg-gradient);
+  background-attachment: fixed;
+  transition: background-color 0.8s ease, background-image 0.8s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.app-theme-wrapper.theme-purple {
+  --app-bg-dark: #0c0a12;
+  --app-bg-gradient: linear-gradient(135deg, #1d0e2b 0%, #0d0e1b 50%, #07070a 100%);
+  --accent-color: #a855f7;
+  --accent-rgb: 168, 85, 247;
+  --sidebar-hover-bg: rgba(32, 14, 43, 0.95);
+  --sidebar-hover-border: rgba(168, 85, 247, 0.3);
+  --sidebar-hover-text: #ffffff;
+}
+
+.app-theme-wrapper.theme-aurora {
+  --app-bg-dark: #03100c;
+  --app-bg-gradient: linear-gradient(135deg, #031c12 0%, #041416 50%, #020506 100%);
+  --accent-color: #00f5d4;
+  --accent-rgb: 0, 245, 212;
+  --sidebar-hover-bg: rgba(5, 30, 24, 0.95);
+  --sidebar-hover-border: rgba(0, 245, 212, 0.3);
+  --sidebar-hover-text: #ffffff;
+}
+
+.app-theme-wrapper.theme-sunset {
+  --app-bg-dark: #0f0206;
+  --app-bg-gradient: linear-gradient(135deg, #2d0513 0%, #110318 50%, #030004 100%);
+  --accent-color: #ff007f;
+  --accent-rgb: 255, 0, 127;
+  --sidebar-hover-bg: rgba(55, 6, 23, 0.95);
+  --sidebar-hover-border: rgba(255, 0, 127, 0.3);
+  --sidebar-hover-text: #ffffff;
+}
+
+.app-theme-wrapper.theme-space {
+  --app-bg-dark: #010106;
+  --app-bg-gradient: linear-gradient(135deg, #02023d 0%, #000814 50%, #000000 100%);
+  --accent-color: #00b4d8;
+  --accent-rgb: 0, 180, 216;
+  --sidebar-hover-bg: rgba(3, 4, 94, 0.95);
+  --sidebar-hover-border: rgba(0, 180, 216, 0.3);
+  --sidebar-hover-text: #ffffff;
+}
+
+.app-theme-wrapper.theme-jungle {
+  --app-bg-dark: #040905;
+  --app-bg-gradient: linear-gradient(135deg, #0d1e0e 0%, #060f07 50%, #020402 100%);
+  --accent-color: #a7c957;
+  --accent-rgb: 167, 201, 87;
+  --sidebar-hover-bg: rgba(15, 36, 17, 0.95);
+  --sidebar-hover-border: rgba(167, 201, 87, 0.3);
+  --sidebar-hover-text: #ffffff;
+}
+
+.app-theme-wrapper.theme-light {
+  --app-bg-dark: #f0f2f5;
+  --app-bg-gradient: linear-gradient(135deg, #ffffff 0%, #edf2f7 50%, #e2e8f0 100%);
+  --accent-color: #4f46e5;
+  --accent-rgb: 79, 70, 229;
+  --sidebar-glass: rgba(255, 255, 255, 0.7);
+  --player-glass: rgba(255, 255, 255, 0.85);
+  --card-glass: rgba(255, 255, 255, 0.6);
+  --card-glass-hover: rgba(255, 255, 255, 0.9);
+  --text-main: #111111;
+  --text-muted: rgba(0, 0, 0, 0.55);
+  --border-light: rgba(0, 0, 0, 0.08);
+  --sidebar-hover-bg: rgba(240, 244, 255, 0.96);
+  --sidebar-hover-border: rgba(79, 70, 229, 0.35);
+  --sidebar-hover-text: #4f46e5;
+}
+
+.app-theme-wrapper.theme-dark {
+  --app-bg-dark: #000000;
+  --app-bg-gradient: linear-gradient(135deg, #050505 0%, #000000 50%, #0a0a0a 100%);
+  --accent-color: #1db954;
+  --accent-rgb: 29, 185, 84;
+  --sidebar-glass: rgba(10, 10, 10, 0.65);
+  --player-glass: rgba(15, 15, 15, 0.85);
+  --card-glass: rgba(20, 20, 20, 0.45);
+  --card-glass-hover: rgba(30, 30, 30, 0.65);
+  --text-main: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.6);
+  --border-light: rgba(255, 255, 255, 0.04);
+  --sidebar-hover-bg: rgba(20, 20, 20, 0.95);
+  --sidebar-hover-border: rgba(29, 185, 84, 0.3);
+  --sidebar-hover-text: #ffffff;
+}
+
+/* Smooth global transition for theme switching */
+.app-theme-wrapper,
+.app-theme-wrapper *,
+.app-theme-wrapper ::before,
+.app-theme-wrapper ::after {
+  transition: color 0.8s cubic-bezier(0.25, 1, 0.5, 1), 
+              background-color 0.8s cubic-bezier(0.25, 1, 0.5, 1), 
+              border-color 0.8s cubic-bezier(0.25, 1, 0.5, 1), 
+              box-shadow 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Legibility overrides for Minimal Light Theme */
+.theme-light h1,
+.theme-light h2,
+.theme-light h3,
+.theme-light h4,
+.theme-light h5,
+.theme-light h6,
+.theme-light .track-list-title,
+.theme-light .album-list-name,
+.theme-light .sidebar nav ul li a,
+.theme-light .logo,
+.theme-light .user-welcome span,
+.theme-light .song-title-large,
+.theme-light .section-title,
+.theme-light .announcement-item h4,
+.theme-light .profile-header h2,
+.theme-light .listening-stats h3,
+.theme-light .updates-list h3,
+.theme-light .privacy-options h3,
+.theme-light .account-settings h3,
+.theme-light .recent-plays h3,
+.theme-light .connections-modal h3,
+.theme-light .ai-modal-content h3,
+.theme-light .results-section h3,
+.theme-light .artist-profile-name,
+.theme-light .stats-section h3,
+.theme-light .browse-title,
+.theme-light .stat-card h3,
+.theme-light .empty-state-title,
+.theme-light .album-detail-view h2,
+.theme-light .album-detail-view h3 {
+  color: var(--text-main) !important;
+}
+
+.theme-light p,
+.theme-light span:not(.empty-state-action-btn):not(.track-list-play-btn):not(.btn):not(.badge):not(.notif-count-badge):not(.repeat-one-badge):not(.theme-select-item span):not(.nav-text),
+.theme-light .track-list-artist,
+.theme-light .album-list-count,
+.theme-light .user-welcome,
+.theme-light .sidebar nav ul li a i,
+.theme-light .time-stamp,
+.theme-light .volume-icon,
+.theme-light .nav-icon-btn,
+.theme-light .notif-item-body p,
+.theme-light .premium-desc,
+.theme-light .empty-state-description {
+  color: var(--text-muted) !important;
+}
+
+.theme-light .expandable-nav-item.active {
+  background: var(--sidebar-hover-bg) !important;
+  border: 1px solid var(--sidebar-hover-border) !important;
+  color: var(--accent-color) !important;
+}
+
+.theme-light .expandable-nav-item.active i {
+  color: var(--accent-color) !important;
+}
+
+.theme-light .expandable-nav-item.active .nav-text {
+  color: var(--accent-color) !important;
+}
+
+.theme-light .expandable-nav-item:hover {
+  background: var(--sidebar-hover-bg) !important;
+  border: 1px solid var(--sidebar-hover-border) !important;
+  color: var(--sidebar-hover-text) !important;
+}
+
+.theme-light .expandable-nav-item:hover i {
+  color: var(--sidebar-hover-text) !important;
+}
+
+.theme-light .expandable-nav-item:hover .nav-text {
+  color: var(--sidebar-hover-text) !important;
+}
+
+.theme-light .glass-card,
+.theme-light .notif-dropdown-menu,
+.theme-light .modal-content,
+.theme-light .ai-modal-content,
+.theme-light .connections-modal-content {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: var(--text-main) !important;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1) !important;
+}
+
+.theme-light .modal-content input,
+.theme-light .admin-input-wrapper input {
+  color: var(--text-main) !important;
+}
+
+.theme-light .album-list-item,
+.theme-light .track-list-item {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important;
+}
+
+.theme-light .album-list-item:hover,
+.theme-light .track-list-item:hover {
+  background: rgba(0, 0, 0, 0.03) !important;
+}
+
+.theme-light .track-list-index {
+  color: var(--text-muted) !important;
+}
+
+/* ==========================================================================
+   PREMIUM GLASSMORPHISM & APPLE-STYLE DYNAMIC ANIMATIONS
+   ========================================================================== */
+
+/* 1. Page Fade-In + Slide-Up Transitions */
+@keyframes pageFadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.songs-page,
+.artists-page,
+.albums-page,
+.search-page-modern,
+.browse-page-container,
+.profile-page,
+.artist-detail-page-modern,
+.song-detail-container {
+  animation: pageFadeSlide 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* 2. Glassmorphic Elevating Overrides */
+.song-card,
+.artist-card,
+.album-list-item,
+.blog-card,
+.track-list-item,
+.glass-panel,
+.glass-card,
+.sidebar,
+.sidebar-narrow,
+.content-rounded,
+.right-sidebar,
+.notif-dropdown-menu,
+.modal-content,
+.ai-modal-content,
+.connections-modal-content {
+  backdrop-filter: blur(25px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
+  transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              box-shadow 0.8s cubic-bezier(0.25, 1, 0.5, 1), 
+              background 0.8s cubic-bezier(0.25, 1, 0.5, 1), 
+              border-color 0.8s cubic-bezier(0.25, 1, 0.5, 1) !important;
+}
+
+.music-player-bar {
+  backdrop-filter: blur(25px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
+}
+
+/* Dark theme card translucent overrides */
+.app-theme-wrapper:not(.theme-light) .song-card {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+.app-theme-wrapper:not(.theme-light) .album-list-item {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+.app-theme-wrapper:not(.theme-light) .track-list-item {
+  background: rgba(255, 255, 255, 0.01) !important;
+  border: 1px solid rgba(255, 255, 255, 0.03) !important;
+}
+.app-theme-wrapper:not(.theme-light) .blog-card {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Dark/Canlı Temalar için Belirgin Cam Bölmeleri */
+.app-theme-wrapper:not(.theme-light) .sidebar-narrow {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+.app-theme-wrapper:not(.theme-light) .content-rounded {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+.app-theme-wrapper:not(.theme-light) .music-player-bar {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+.app-theme-wrapper:not(.theme-light) .right-sidebar {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Aydınlık Tema için Belirgin Cam Bölmeleri */
+.theme-light .sidebar-narrow {
+  background: rgba(255, 255, 255, 0.65) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+.theme-light .content-rounded {
+  background: rgba(255, 255, 255, 0.45) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04) !important;
+}
+
+.theme-light .music-player-bar {
+  background: rgba(255, 255, 255, 0.75) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06) !important;
+}
+
+.theme-light .right-sidebar {
+  background: rgba(255, 255, 255, 0.45) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* 3. Theme-Synchronized Glowing Reflections on Hover */
+.song-card:hover {
+  background: var(--card-glass-hover) !important;
+  transform: translateY(-8px) scale(1.02) !important;
+  border-color: rgba(var(--accent-rgb), 0.35) !important;
+  box-shadow: 0 15px 35px rgba(var(--accent-rgb), 0.22) !important;
+}
+
+.artist-card:hover {
+  transform: translateY(-8px) scale(1.03) !important;
+  filter: drop-shadow(0 15px 25px rgba(var(--accent-rgb), 0.18)) !important;
+}
+
+.album-list-item:hover {
+  background: rgba(var(--accent-rgb), 0.07) !important;
+  border-color: rgba(var(--accent-rgb), 0.25) !important;
+  transform: translateX(6px) scale(1.01) !important;
+  box-shadow: 0 8px 25px rgba(var(--accent-rgb), 0.12) !important;
+}
+
+.track-list-item:hover {
+  background: rgba(var(--accent-rgb), 0.07) !important;
+  border-color: rgba(var(--accent-rgb), 0.25) !important;
+  transform: translateX(6px) scale(1.01) !important;
+}
+
+.blog-card:hover {
+  transform: translateY(-8px) scale(1.02) !important;
+  border-color: rgba(var(--accent-rgb), 0.35) !important;
+  box-shadow: 0 15px 35px rgba(var(--accent-rgb), 0.2) !important;
+}
+
+.glass-card:hover {
+  border-color: rgba(var(--accent-rgb), 0.25) !important;
+  box-shadow: 0 12px 30px rgba(var(--accent-rgb), 0.15) !important;
+}
+
+/* 4. Pure CSS Staggered Cascading Entrances */
+@keyframes cardStaggerFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.song-card,
+.artist-card,
+.album-list-item,
+.blog-card,
+.track-list-item {
+  animation: cardStaggerFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.song-card:nth-child(1), .artist-card:nth-child(1), .album-list-item:nth-child(1), .track-list-item:nth-child(1), .blog-card:nth-child(1) { animation-delay: 40ms; }
+.song-card:nth-child(2), .artist-card:nth-child(2), .album-list-item:nth-child(2), .track-list-item:nth-child(2), .blog-card:nth-child(2) { animation-delay: 80ms; }
+.song-card:nth-child(3), .artist-card:nth-child(3), .album-list-item:nth-child(3), .track-list-item:nth-child(3), .blog-card:nth-child(3) { animation-delay: 120ms; }
+.song-card:nth-child(4), .artist-card:nth-child(4), .album-list-item:nth-child(4), .track-list-item:nth-child(4), .blog-card:nth-child(4) { animation-delay: 160ms; }
+.song-card:nth-child(5), .artist-card:nth-child(5), .album-list-item:nth-child(5), .track-list-item:nth-child(5), .blog-card:nth-child(5) { animation-delay: 200ms; }
+.song-card:nth-child(6), .artist-card:nth-child(6), .album-list-item:nth-child(6), .track-list-item:nth-child(6), .blog-card:nth-child(6) { animation-delay: 240ms; }
+.song-card:nth-child(7), .artist-card:nth-child(7), .album-list-item:nth-child(7), .track-list-item:nth-child(7), .blog-card:nth-child(7) { animation-delay: 280ms; }
+.song-card:nth-child(8), .artist-card:nth-child(8), .album-list-item:nth-child(8), .track-list-item:nth-child(8), .blog-card:nth-child(8) { animation-delay: 320ms; }
+.song-card:nth-child(9), .artist-card:nth-child(9), .album-list-item:nth-child(9), .track-list-item:nth-child(9), .blog-card:nth-child(9) { animation-delay: 360ms; }
+.song-card:nth-child(n+10), .artist-card:nth-child(n+10), .album-list-item:nth-child(n+10), .track-list-item:nth-child(n+10), .blog-card:nth-child(n+10) { animation-delay: 400ms; }
+
+/* 5. Spring Physics Elastic Modals & Dropdowns */
+@keyframes modalSpringIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(25px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-content,
+.ai-modal-content,
+.connections-modal-content,
+.notif-dropdown-menu {
+  animation: modalSpringIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ==========================================================================
+   LIGHT MODE BUTTONS & CONTROLS LEGIBILITY OVERRIDES
+   ========================================================================== */
+.theme-light .nav-arrow-btn {
+  background: rgba(0, 0, 0, 0.06) !important;
+  color: #1e293b !important;
+}
+.theme-light .nav-arrow-btn:hover {
+  background: rgba(0, 0, 0, 0.12) !important;
+  color: var(--accent-color) !important;
+}
+.theme-light .nav-home-btn {
+  background: rgba(0, 0, 0, 0.06) !important;
+  color: #1e293b !important;
+}
+.theme-light .nav-home-btn:hover {
+  background: rgba(0, 0, 0, 0.12) !important;
+  color: var(--accent-color) !important;
+}
+.theme-light .nav-icon-btn {
+  color: #1e293b !important;
+}
+.theme-light .nav-icon-btn:hover {
+  color: var(--accent-color) !important;
+}
+.theme-light .global-search-form {
+  background: rgba(0, 0, 0, 0.06) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+.theme-light .search-icon-global {
+  color: #64748b !important;
+}
+.theme-light .search-icon-global:hover {
+  color: var(--accent-color) !important;
+}
+.theme-light .global-search-form input {
+  color: #1e293b !important;
+}
+.theme-light .global-search-form input::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Player Bar Controls */
+.theme-light .music-player-bar .nav-btn {
+  color: #64748b !important;
+}
+.theme-light .music-player-bar .nav-btn:hover {
+  color: var(--accent-color) !important;
+}
+.theme-light .play-circle-btn {
+  background: var(--accent-color) !important;
+  border: none !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3) !important;
+}
+.theme-light .play-circle-btn:hover {
+  background: var(--accent-color) !important;
+  filter: brightness(1.15) !important;
+  transform: scale(1.08) !important;
+}
+.theme-light .play-circle-btn i {
+  color: #ffffff !important;
+}
+.theme-light .volume-icon {
+  color: #64748b !important;
+}
+.theme-light .volume-icon i {
+  color: #64748b !important;
+}
+.theme-light .time-stamp {
+  color: #64748b !important;
+}
+.theme-light .mini-player-eq .mini-eq-bar {
+  background: var(--accent-color) !important;
+}
+
+/* Progress Seek Step Buttons & Volume Step Buttons */
+.slider-step-btn,
+.volume-step-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.slider-step-btn:hover,
+.volume-step-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--accent-color);
+  transform: scale(1.1);
+}
+
+.theme-light .slider-step-btn:hover,
+.theme-light .volume-step-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--accent-color);
+}
+
+.theme-light .slider-step-btn,
+.theme-light .volume-step-btn {
+  color: #64748b;
+}
+
+/* Align volume controls perfectly */
+.player-right-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ==========================================================================
+   MINIMAL LIGHT THEME - PREMIUM CONTRAST & LEGIBILITY ADJUSTMENTS
+   ========================================================================= */
+
+/* 1. Artist Details & Dropdown Menus */
+.theme-light .artist-follow-btn,
+.theme-light .follow-btn {
+  background: transparent !important;
+  border: 1px solid rgba(0, 0, 0, 0.22) !important;
+  color: #1e293b !important;
+}
+
+.theme-light .artist-follow-btn:hover,
+.theme-light .follow-btn:hover {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border-color: #1e293b !important;
+}
+
+.theme-light .artist-follow-btn.following,
+.theme-light .follow-btn.following {
+  background: var(--accent-color) !important;
+  border-color: transparent !important;
+  color: #ffffff !important;
+}
+
+.theme-light .artist-follow-btn.following:hover,
+.theme-light .follow-btn.following:hover {
+  background: var(--accent-color) !important;
+  filter: brightness(1.1) !important;
+}
+
+.theme-light .artist-more-btn {
+  color: #1e293b !important;
+}
+
+.theme-light .artist-more-btn:hover {
+  color: var(--accent-color) !important;
+}
+
+.theme-light .artist-dropdown-menu {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+}
+
+.theme-light .artist-dropdown-menu .dropdown-item {
+  color: #1e293b !important;
+}
+
+.theme-light .artist-dropdown-menu .dropdown-item i {
+  color: var(--accent-color) !important;
+}
+
+.theme-light .artist-dropdown-menu .dropdown-item:hover {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: var(--accent-color) !important;
+}
+
+/* 2. Banner Header Content Override (Ensures readability over dark background images) */
+.theme-light .artist-header-content *,
+.theme-light .genre-header-content *,
+.theme-light .album-header-content *,
+.theme-light .verified-badge,
+.theme-light .verified-badge span,
+.theme-light .artist-monthly-listeners,
+.theme-light .artist-large-name,
+.theme-light .genre-large-title,
+.theme-light .genre-desc,
+.theme-light .genre-subtitle {
+  color: #ffffff !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* 3. Search Page Chips */
+.theme-light .history-chip {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  color: var(--text-main) !important;
+}
+
+.theme-light .history-chip:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  color: var(--accent-color) !important;
+}
+
+.theme-light .clear-history-btn {
+  color: var(--text-muted) !important;
+}
+
+.theme-light .clear-history-btn:hover {
+  color: var(--accent-color) !important;
+}
+
+/* 4. Browse Genre Songs List */
+.theme-light .popular-songs-heading {
+  color: var(--text-main) !important;
+}
+
+.theme-light .genre-track-item {
+  background: rgba(0, 0, 0, 0.02) !important;
+  border: 1px solid rgba(0, 0, 0, 0.04) !important;
+}
+
+.theme-light .genre-track-item:hover {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  transform: translateX(6px) !important;
+}
+
+.theme-light .genre-track-item .track-title {
+  color: var(--text-main) !important;
+}
+
+.theme-light .genre-track-item .track-artist {
+  color: var(--text-muted) !important;
+}
+
+.theme-light .genre-track-item .track-index {
+  color: var(--text-muted) !important;
+}
+
+.theme-light .genre-play-btn {
+  color: var(--accent-color) !important;
+}
+
+.theme-light .genre-add-btn {
+  color: var(--text-muted) !important;
+}
+
+.theme-light .genre-add-btn:hover {
+  color: var(--accent-color) !important;
+}
+
+/* 5. Song Details View (Turntable & Lyrics) */
+.theme-light .song-detail-container {
+  background-color: #f8fafc !important;
+  color: var(--text-main) !important;
+}
+
+.theme-light .song-detail-container::before {
+  background: radial-gradient(
+    circle at 50% 30%, 
+    rgba(255, 255, 255, 0.7) 0%, 
+    rgba(241, 245, 249, 0.85) 60%, 
+    rgba(226, 232, 240, 0.95) 100%
+  ) !important;
+}
+
+.theme-light .song-detail-blur-bg {
+  opacity: 0.15 !important;
+}
+
+.theme-light .detail-song-title-heading,
+.theme-light .detail-meta-title {
+  color: var(--text-main) !important;
+}
+
+.theme-light .detail-tab-btn {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  color: var(--text-muted) !important;
+}
+
+.theme-light .detail-tab-btn:hover {
+  color: var(--text-main) !important;
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+.theme-light .detail-tab-btn.active {
+  background: rgba(var(--accent-rgb), 0.1) !important;
+  border-color: rgba(var(--accent-rgb), 0.25) !important;
+  color: var(--accent-color) !important;
+  box-shadow: none !important;
+}
+
+.theme-light .detail-back-btn {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  color: var(--text-main) !important;
+}
+
+.theme-light .detail-back-btn:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+.theme-light .vinyl-deck-wrapper {
+  background: radial-gradient(circle, #ffffff 0%, #edf2f7 100%) !important;
+  border: 8px solid rgba(0, 0, 0, 0.03) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.06), 0 0 30px rgba(var(--accent-rgb), 0.04) !important;
+}
+
+.theme-light .vinyl-center-spindle {
+  border: 2px solid #ffffff !important;
+}
+
+.theme-light .vinyl-deck-pulse {
+  border-color: rgba(var(--accent-rgb), 0.12) !important;
+}
+
+.theme-light .detail-meta-artist {
+  color: var(--accent-color) !important;
+}
+
+.theme-light .detail-meta-artist:hover {
+  color: var(--accent-color) !important;
+  filter: brightness(0.85) !important;
+}
+
+.theme-light .glass-panel {
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04) !important;
+}
+
+.theme-light .radial-inner-circle {
+  background: radial-gradient(circle, #ffffff 0%, #f8fafc 100%) !important;
+  border: 1px solid rgba(0, 0, 0, 0.03) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02) !important;
+}
+
+.theme-light .radial-vol-number {
+  color: var(--text-main) !important;
+}
+
+.theme-light .radial-vol-label {
+  color: var(--text-muted) !important;
+}
+
+.theme-light .radial-vol-icon {
+  color: var(--accent-color) !important;
+}
+
+.theme-light .radial-bg-track {
+  stroke: rgba(0, 0, 0, 0.04) !important;
+}
+
+.theme-light .radial-progress-track {
+  stroke: var(--accent-color) !important;
+  filter: drop-shadow(0 0 3px rgba(var(--accent-rgb), 0.2)) !important;
+}
+
+.theme-light .vol-step-btn {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: var(--text-main) !important;
+}
+
+.theme-light .vol-step-btn:hover {
+  background: rgba(var(--accent-rgb), 0.08) !important;
+  color: var(--accent-color) !important;
+}
+
+.theme-light .detail-vol-slider {
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+.theme-light .detail-vol-slider::-webkit-slider-thumb {
+  background: var(--accent-color) !important;
+  box-shadow: 0 0 5px rgba(var(--accent-rgb), 0.35) !important;
+}
+
+.theme-light .frequency-analyzer-section {
+  background: rgba(0, 0, 0, 0.015) !important;
+  border: 1px solid rgba(0, 0, 0, 0.03) !important;
+}
+
+.theme-light .freq-bar-header {
+  color: var(--text-muted) !important;
+}
+
+.theme-light .audio-note-indicator {
+  color: var(--accent-color) !important;
+}
+
+.theme-light .freq-bar-fill {
+  background: var(--accent-color) !important;
+}
+
+.theme-light .freq-labels {
+  color: var(--text-muted) !important;
+}
+
+.theme-light .detail-stat-card-micro {
+  background: rgba(0, 0, 0, 0.015) !important;
+  border: 1px solid rgba(0, 0, 0, 0.03) !important;
+}
+
+.theme-light .stat-card-micro-label {
+  color: var(--text-muted) !important;
+}
+
+.theme-light .stat-card-micro-value {
+  color: var(--text-main) !important;
+}
+
+.theme-light .lyrics-header-row h3 {
+  color: var(--text-main) !important;
+}
+
+.theme-light .lyrics-badge {
+  background: rgba(var(--accent-rgb), 0.08) !important;
+  color: var(--accent-color) !important;
+  border: 1px solid rgba(var(--accent-rgb), 0.15) !important;
+}
+
+.theme-light .lyrics-scroller::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+.theme-light .lyrics-line.past {
+  color: #cbd5e1 !important;
+}
+
+.theme-light .lyrics-line.active {
+  color: var(--accent-color) !important;
+  text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.25) !important;
+}
+
+.theme-light .lyrics-line.future {
+  color: var(--text-muted) !important;
+  opacity: 0.65 !important;
+}
+
+.theme-light .detail-time-text {
+  color: var(--text-muted) !important;
+}
+
+.theme-light .detail-timeline-slider {
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+.theme-light .detail-timeline-slider::-webkit-slider-thumb {
+  background: var(--accent-color) !important;
+  box-shadow: 0 0 6px rgba(var(--accent-rgb), 0.3) !important;
+}
+
+.theme-light .detail-control-btn {
+  color: var(--text-muted) !important;
+}
+
+.theme-light .detail-control-btn:hover {
+  color: var(--text-main) !important;
+  background: rgba(0, 0, 0, 0.04) !important;
+}
+
+.theme-light .detail-control-btn.active {
+  color: var(--accent-color) !important;
+}
+
+/* 6. Settings Page Connections List */
+.theme-light .settings-item {
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  color: var(--text-main) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.01) !important;
+}
+
+.theme-light .settings-item:hover {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+}
+
+.theme-light .settings-text h4 {
+  color: var(--text-main) !important;
+}
+
+.theme-light .settings-text p {
+  color: var(--text-muted) !important;
+}
+
+.theme-light .settings-item-left i {
+  color: var(--accent-color) !important;
+}
+
+.theme-light .chevron-icon {
+  color: var(--text-muted) !important;
+}
+
+/* 7. Premium Plan Page */
+.theme-light .premium-landing-hero {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(124, 58, 237, 0.08) 100%) !important;
+  border: 1px solid rgba(79, 70, 229, 0.12) !important;
+}
+
+.theme-light .premium-landing-hero h1 {
+  background: linear-gradient(to right, var(--text-main) 30%, var(--accent-color) 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+.theme-light .premium-landing-hero p {
+  color: var(--text-muted) !important;
+}
+
+.theme-light .premium-price-tag {
+  color: var(--text-main) !important;
+}
+
+.theme-light .premium-price-tag span {
+  color: var(--text-muted) !important;
+}
+
+.theme-light .feature-box {
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.theme-light .feature-box:hover {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(79, 70, 229, 0.25) !important;
+}
+
+.theme-light .feature-box h4 {
+  color: var(--text-main) !important;
+}
+
+.theme-light .feature-box p {
+  color: var(--text-muted) !important;
+}
+
+.theme-light .premium-active-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(243, 244, 246, 0.6) 100%) !important;
+  border: 1px solid rgba(79, 70, 229, 0.2) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04) !important;
+}
+
+.theme-light .active-title-group h3,
+.theme-light .active-detail-value {
+  color: var(--text-main) !important;
+}
+
+.theme-light .active-title-group p,
+.theme-light .active-detail-label {
+  color: var(--text-muted) !important;
+}
+
+.theme-light .premium-manage-btn {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: var(--text-main) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+.theme-light .premium-manage-btn:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+.theme-light .premium-cancel-btn {
+  background: rgba(239, 68, 68, 0.06) !important;
+  color: #dc2626 !important;
+  border: 1px solid rgba(239, 68, 68, 0.15) !important;
+}
+
+.theme-light .premium-cancel-btn:hover {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.25) !important;
+}
+
+.theme-light .premium-checkout-box {
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03) !important;
+}
+
+.theme-light .checkout-box-title {
+  color: var(--text-main) !important;
+}
+
+.theme-light .form-group-custom label {
+  color: var(--text-muted) !important;
+}
+
+.theme-light .input-icon-wrapper-custom input {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  color: var(--text-main) !important;
+}
+
+.theme-light .input-icon-wrapper-custom input::placeholder {
+  color: #94a3b8 !important;
+}
+
+.theme-light .input-icon-wrapper-custom input:focus {
+  border-color: var(--accent-color) !important;
+  background: #ffffff !important;
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.15) !important;
+}
+
+.theme-light .secured-badge-row {
+  color: var(--text-muted) !important;
+}
+
+.theme-light .plan-change-btn {
+  background: var(--accent-color) !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+
+.theme-light .plan-change-btn:hover {
+  filter: brightness(1.1) !important;
+}
+
+/* 8. Light Theme Scrollbar Adjustments */
+.theme-light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12) !important;
+}
+
+/* 9. Connections Modal Overrides (Fixes invisible header title and white active tab text) */
+.theme-light .connections-modal-content {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08) !important;
+  color: var(--text-main) !important;
+}
+.theme-light .connections-modal-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+.theme-light .connections-modal-header h3 {
+  background: none !important;
+  -webkit-text-fill-color: initial !important;
+  color: var(--text-main) !important;
+  font-weight: 800 !important;
+}
+.theme-light .connections-modal-close-btn {
+  color: var(--text-muted) !important;
+}
+.theme-light .connections-modal-close-btn:hover {
+  color: var(--text-main) !important;
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+.theme-light .connections-tabs {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+.theme-light .connections-tab-btn {
+  color: var(--text-muted) !important;
+}
+.theme-light .connections-tab-btn:hover {
+  color: var(--text-main) !important;
+  background: rgba(0, 0, 0, 0.04) !important;
+}
+.theme-light .connections-tab-btn.active {
+  color: var(--accent-color) !important;
+  background: rgba(var(--accent-rgb), 0.08) !important;
+  border-color: rgba(var(--accent-rgb), 0.15) !important;
+  box-shadow: none !important;
+}
+.theme-light .connections-tab-count {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: var(--text-muted) !important;
+}
+.theme-light .connections-tab-btn.active .connections-tab-count {
+  background: rgba(var(--accent-rgb), 0.15) !important;
+  color: var(--accent-color) !important;
+}
+.theme-light .connections-user-item {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important;
+}
+.theme-light .connections-user-item:hover {
+  background: rgba(0, 0, 0, 0.02) !important;
+}
+.theme-light .connections-user-details h5 {
+  color: var(--text-main) !important;
+}
+.theme-light .connections-user-details p {
+  color: var(--text-muted) !important;
+}
+.theme-light .connections-unfollow-btn {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: var(--text-main) !important;
+}
+.theme-light .connections-unfollow-btn:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  color: var(--text-main) !important;
+  box-shadow: none !important;
+}
+.theme-light .connections-user-info img {
+  border: 1.5px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05) !important;
+}
+.theme-light .connections-list-empty i {
+  background: linear-gradient(135deg, var(--text-main) 0%, var(--text-muted) 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+.theme-light .connections-list-empty p {
+  color: var(--text-muted) !important;
+}
+
+/* 10. Global Search Results Dropdown Overrides (Fixes invisible search texts) */
+.theme-light .search-dropdown-menu {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08) !important;
+}
+.theme-light .dropdown-section h4 {
+  color: var(--text-muted) !important;
+}
+.theme-light .dropdown-item:hover {
+  background: rgba(0, 0, 0, 0.04) !important;
+}
+.theme-light .dropdown-item-info h5 {
+  color: var(--text-main) !important;
+}
+.theme-light .dropdown-item-info p {
+  color: var(--text-muted) !important;
+}
+.theme-light .play-hover-icon {
+  color: var(--accent-color) !important;
+}
+.theme-light .add-to-playlist-btn,
+.theme-light .remove-recent-btn {
+  color: var(--text-muted) !important;
+}
+.theme-light .add-to-playlist-btn:hover,
+.theme-light .remove-recent-btn:hover {
+  color: var(--accent-color) !important;
+}
+.theme-light .search-dropdown-menu::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12) !important;
+}
+@media (max-width: 768px) {
+  .theme-light .search-dropdown-menu {
+    background: rgba(255, 255, 255, 0.96) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.1) !important;
+  }
+  .theme-light .dropdown-item {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important;
+  }
+}
+
+/* 11. Mobile Sidebar Navigation Drawer Overrides (Light glassmorphism menu drawer) */
+.theme-light .mobile-sidebar-drawer {
+  background: rgba(255, 255, 255, 0.75) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 15px 0 45px rgba(0, 0, 0, 0.08) !important;
+}
+.theme-light .mobile-logo {
+  color: var(--text-main) !important;
+}
+.theme-light .close-mobile-menu-btn {
+  color: var(--text-muted) !important;
+}
+.theme-light .close-mobile-menu-btn:hover {
+  color: var(--text-main) !important;
+}
+.theme-light .mobile-nav-item,
+.theme-light .mobile-artist-link {
+  color: var(--text-muted) !important;
+}
+.theme-light .mobile-nav-item i {
+  color: var(--text-muted) !important;
+}
+.theme-light .mobile-nav-item:hover,
+.theme-light .mobile-nav-item.active,
+.theme-light .mobile-artist-link:hover,
+.theme-light .mobile-artist-link.active {
+  color: var(--accent-color) !important;
+  background: rgba(0, 0, 0, 0.04) !important;
+}
+.theme-light .mobile-nav-item:hover i,
+.theme-light .mobile-nav-item.active i {
+  color: var(--accent-color) !important;
+}
+.theme-light .mobile-library-header {
+  color: var(--text-main) !important;
+}
+.theme-light .mobile-artist-name {
+  color: var(--text-muted) !important;
+}
+.theme-light .mobile-artist-link:hover .mobile-artist-name,
+.theme-light .mobile-artist-link.active .mobile-artist-name {
+  color: var(--accent-color) !important;
+}
+.theme-light .mobile-sidebar-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+/* 12. Maximized Mobile Player Overrides (Adapts beautiful light modal player under light theme) */
+.theme-light .maximized-player-blur-bg {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(50px) saturate(180%) !important;
+}
+
+.theme-light .maximized-player-overlay {
+  --progress-color: var(--accent-color) !important;
+  --track-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.theme-light .maximized-player-header span,
+.theme-light .maximized-player-header button,
+.theme-light .maximized-song-details h2,
+.theme-light .maximized-song-details p,
+.theme-light .maximized-timestamps span,
+.theme-light .maximized-device-info,
+.theme-light .maximized-footer-btn,
+.theme-light .maximized-control-btn,
+.theme-light .maximized-add-btn {
+  color: var(--text-main) !important;
+  text-shadow: none !important;
+}
+
+.theme-light .maximized-song-details p,
+.theme-light .maximized-timestamps span,
+.theme-light .maximized-device-info,
+.theme-light .maximized-footer-btn,
+.theme-light .maximized-control-btn {
+  color: var(--text-muted) !important;
+}
+
+.theme-light .maximized-control-btn:hover,
+.theme-light .maximized-footer-btn:hover,
+.theme-light .maximized-add-btn:hover {
+  color: var(--accent-color) !important;
+}
+
+.theme-light .maximized-control-btn.active {
+  color: var(--accent-color) !important;
+  text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.3) !important;
+}
+
+.theme-light .maximized-play-btn {
+  background: var(--accent-color) !important;
+  color: #ffffff !important;
+  box-shadow: 0 8px 25px rgba(var(--accent-rgb), 0.3) !important;
+}
+
+.theme-light .maximized-play-btn i {
+  color: #ffffff !important;
+}
+
+.theme-light .maximized-progress-slider {
+  filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.04)) !important;
+}
+
+.theme-light .maximized-progress-slider::-webkit-slider-thumb {
+  background: var(--accent-color) !important;
+  box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.4), 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+.theme-light .maximized-freq-bar {
+  background: var(--accent-color) !important;
+}
+
+/* 13. Remove bottom border from minimized music player bar globally */
+.music-player-bar {
+  border-bottom: 0 !important;
+  border-bottom-width: 0 !important;
+}
+
+/* 14. Sidebar Bottom Utilities (Theme picker and profile navigation) */
+.sidebar-bottom-utils {
+  margin-top: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  padding-top: 15px !important;
+  padding-bottom: 10px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.theme-light .sidebar-bottom-utils {
+  border-top: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+.sidebar-theme-container button {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.sidebar-theme-container button:hover {
+  transform: scale(1.1) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.theme-light .sidebar-theme-container button:hover {
+  background: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Ensure dropdown menu opens upwards from narrow sidebar bottom area */
+.sidebar-theme-container .theme-dropdown-menu {
+  position: absolute !important;
+  left: 50px !important;
+  bottom: 0 !important;
+  top: auto !important;
+  transform-origin: bottom left !important;
+  animation: modalSpringIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
+}
+
+/* Theme Dropdown & Selection Styling */
+.theme-dropdown-menu h4 {
+  color: #a0a0b0 !important;
+}
+
+.theme-light .theme-dropdown-menu h4 {
+  color: var(--text-muted) !important;
+}
+
+.theme-select-item {
+  color: #ffffff !important;
+}
+
+.theme-select-item:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.theme-light .theme-select-item {
+  color: #333333 !important;
+}
+
+.theme-light .theme-select-item:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* For active item style in light theme */
+.theme-light .theme-select-item span {
+  color: inherit !important;
+}
+
+/* Sidebar Bottom Utilities Hover Labels (Palette & Profile Hover Effects) */
+.sidebar-theme-hover-name,
+.sidebar-profile-hover-name {
+  position: absolute !important;
+  left: 50px !important;
+  top: 50% !important;
+  transform: translateY(-50%) translateX(-15px) !important;
+  background: rgba(15, 15, 25, 0.9) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  color: #ffffff !important;
+  padding: 8px 16px !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  z-index: 100000 !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4) !important;
+  pointer-events: none !important;
+}
+
+.sidebar-theme-container:hover .sidebar-theme-hover-name,
+.sidebar-profile-container:hover .sidebar-profile-hover-name {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(-50%) translateX(10px) !important;
+}
+
+/* Light Theme Overrides for Hover Labels */
+.theme-light .sidebar-theme-hover-name,
+.theme-light .sidebar-profile-hover-name {
+  background: rgba(255, 255, 255, 0.95) !important;
+  color: #1e293b !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
 }

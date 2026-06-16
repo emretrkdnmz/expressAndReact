@@ -1,10 +1,14 @@
 import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import LoadingSpinner from './components/LoadingSpinner';
 import AnimatedBackground from './components/AnimatedBackground';
 import './Login.css';
 
 function Login({ onLoginSuccess }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  
   // Giriş mi kayıt mı ekranındayız? (true = Login, false = Register)
   const [isLoginView, setIsLoginView] = useState(true);
   
@@ -75,7 +79,6 @@ function Login({ onLoginSuccess }) {
         password: loginPassword
       });
       
-      localStorage.setItem('userToken', response.data.token);
       localStorage.setItem('userData', JSON.stringify(response.data));
 
       setIsLoading(false);
@@ -99,7 +102,6 @@ function Login({ onLoginSuccess }) {
         password: registerPassword
       });
       
-      localStorage.setItem('userToken', response.data.token);
       localStorage.setItem('userData', JSON.stringify(response.data));
 
       setIsLoading(false);
@@ -147,7 +149,7 @@ function Login({ onLoginSuccess }) {
 
             <div className="auth-input-group">
               <input 
-                type="email" 
+                type="text" 
                 placeholder="Username or Email" 
                 value={loginEmail} 
                 onChange={(e) => setLoginEmail(e.target.value)} 
@@ -288,18 +290,18 @@ function Login({ onLoginSuccess }) {
           {/* Welcome Panel shown when Login view is selected */}
           <div className="overlay-slide-panel login-welcome-slide">
             <h2>Hello, Welcome!</h2>
-            <p>Don't have an account?</p>
+            <p>Already have an account?</p>
             <button type="button" className="auth-btn-outline" onClick={() => handleSwitchView(false)}>
-              Register
+              Login
             </button>
           </div>
           
           {/* Welcome Panel shown when Registration view is selected */}
           <div className="overlay-slide-panel register-welcome-slide">
             <h2>Welcome Back!</h2>
-            <p>Already have an account?</p>
+            <p>You Dont have a account?</p>
             <button type="button" className="auth-btn-outline" onClick={() => handleSwitchView(true)}>
-              Login
+              Register
             </button>
           </div>
         </div>

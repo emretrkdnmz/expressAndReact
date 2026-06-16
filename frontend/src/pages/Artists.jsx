@@ -3,6 +3,29 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import LoadingSpinner from '../components/LoadingSpinner';
 
+const ArtistCard = React.memo(({ artist, isFavorited, onToggleFavorite, onClick }) => {
+  return (
+    <div className="artist-card" onClick={() => onClick(artist.name)}>
+      <div className="card-actions">
+        <button 
+          className={`icon-btn ${isFavorited ? 'active-heart' : ''}`} 
+          onClick={(e) => onToggleFavorite(e, artist)}
+          title="Favorilere Ekle"
+        >
+          <i className={`fa-${isFavorited ? 'solid' : 'regular'} fa-heart`}></i>
+        </button>
+      </div>
+      <div className="artist-image-wrapper">
+        <img loading="lazy" decoding="async" src={artist.imageUrl} alt={artist.name} className="artist-image circle"  onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }} />
+      </div>
+      <div className="artist-info">
+        <h4>{artist.name}</h4>
+      </div>
+    </div>
+  );
+});
+ArtistCard.displayName = 'ArtistCard';
+
 const Artists = ({ user, favoriteArtists, setFavoriteArtists }) => {
   const [artists, setArtists] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,28 +64,6 @@ const Artists = ({ user, favoriteArtists, setFavoriteArtists }) => {
     }
   }, [user, setFavoriteArtists]);
 
-const ArtistCard = React.memo(({ artist, isFavorited, onToggleFavorite, onClick }) => {
-  return (
-    <div className="artist-card" onClick={() => onClick(artist.name)}>
-      <div className="card-actions">
-        <button 
-          className={`icon-btn ${isFavorited ? 'active-heart' : ''}`} 
-          onClick={(e) => onToggleFavorite(e, artist)}
-          title="Favorilere Ekle"
-        >
-          <i className={`fa-${isFavorited ? 'solid' : 'regular'} fa-heart`}></i>
-        </button>
-      </div>
-      <div className="artist-image-wrapper">
-        <img loading="lazy" decoding="async" src={artist.imageUrl} alt={artist.name} className="artist-image circle"  onError={(e) => { e.target.onerror = null; e.target.src = "/default-cover.svg" }} />
-      </div>
-      <div className="artist-info">
-        <h4>{artist.name}</h4>
-      </div>
-    </div>
-  );
-});
-
   const isFavorited = useCallback((artistId) => {
     return favoriteArtists && favoriteArtists.some(a => a.id === artistId);
   }, [favoriteArtists]);
@@ -94,4 +95,4 @@ const ArtistCard = React.memo(({ artist, isFavorited, onToggleFavorite, onClick 
   );
 };
 
-export default Artists;
+export default React.memo(Artists);

@@ -8,7 +8,107 @@
     <title>frontend</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Premium Aesthetic Startup Loading Screen -->
+      <div class="startup-container">
+        <div class="glow-bg"></div>
+        <div class="startup-logo">
+          <i class="fa-brands fa-spotify"></i>
+        </div>
+        <div class="startup-loader">
+          <div class="pulse-bar"></div>
+          <div class="pulse-bar"></div>
+          <div class="pulse-bar"></div>
+          <div class="pulse-bar"></div>
+        </div>
+        <span class="startup-text">Yükleniyor...</span>
+      </div>
+
+      <style>
+        body {
+          margin: 0;
+          padding: 0;
+          background: #09090e;
+        }
+        .startup-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+          width: 100vw;
+          background: radial-gradient(circle at center, #1b0e2b 0%, #09090e 100%);
+          position: fixed;
+          top: 0;
+          left: 0;
+          z-index: 999999;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+          overflow: hidden;
+        }
+        .glow-bg {
+          position: absolute;
+          width: 400px;
+          height: 400px;
+          background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 70%);
+          filter: blur(50px);
+          animation: glowFloat 6s ease-in-out infinite alternate;
+        }
+        .startup-logo {
+          font-size: 80px;
+          color: #ffffff;
+          margin-bottom: 30px;
+          text-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+          animation: logoEntrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+          z-index: 10;
+        }
+        .startup-loader {
+          display: flex;
+          gap: 6px;
+          height: 30px;
+          align-items: flex-end;
+          margin-bottom: 20px;
+          z-index: 10;
+        }
+        .pulse-bar {
+          width: 4px;
+          height: 8px;
+          background: linear-gradient(to top, #a855f7, #c084fc);
+          border-radius: 2px;
+          animation: soundWave 1.2s ease-in-out infinite;
+        }
+        .pulse-bar:nth-child(1) { animation-delay: 0.1s; }
+        .pulse-bar:nth-child(2) { animation-delay: 0.3s; }
+        .pulse-bar:nth-child(3) { animation-delay: 0.5s; }
+        .pulse-bar:nth-child(4) { animation-delay: 0.2s; }
+
+        .startup-text {
+          color: rgba(255, 255, 255, 0.4);
+          font-size: 13px;
+          font-weight: 500;
+          letter-spacing: 2px;
+          text-transform: uppercase;
+          z-index: 10;
+          animation: pulseOpacity 2s infinite ease-in-out;
+        }
+
+        @keyframes soundWave {
+          0%, 100% { height: 8px; }
+          50% { height: 30px; }
+        }
+        @keyframes glowFloat {
+          0% { transform: translateY(-20px) scale(0.9); }
+          100% { transform: translateY(20px) scale(1.1); }
+        }
+        @keyframes logoEntrance {
+          from { opacity: 0; transform: scale(0.8) translateY(20px); filter: blur(5px); }
+          to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+        }
+        @keyframes pulseOpacity {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 0.8; }
+        }
+      </style>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
